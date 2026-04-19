@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # ตรวจสอบ Library ของ JavaScript (npm)
+  #- package-ecosystem: "npm"
+  #  directory: "/"
+    # ปกติจะดู main ถ้าคุณวุฒิอยากให้ดู branch 2 ด้วย ให้เอาเครื่องหมาย # หน้าบรรทัดล่างออกค่ะ
+  #  target-branch: "dev" 
+  #  schedule:
+  #    interval: "weekly"
+  #    day: "sunday"
+  #    time: "09:00"
+  #    timezone: "Asia/Bangkok"
+  #  open-pull-requests-limit: 10
+  #  labels:
+  #    - "dependencies"
+
+  # ตรวจสอบการอัปเดต GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "dev" 
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "09:00"
+      timezone: "Asia/Bangkok"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"

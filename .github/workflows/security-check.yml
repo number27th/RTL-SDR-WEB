@@ -1,0 +1,33 @@
+name: Global Security & Audit Scan
+
+on:
+  push:
+    branches:
+      - '**' # สแกนทุก branch ที่มีการ push โค้ด (2, 3, 4... โดนหมดค่ะ)
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      # รัน npm audit บน Cloud (ตรวจ Library ในทุก branch ที่คุณวุฒิทำงาน)
+      - name: Run npm audit
+        run: npm audit || echo "พบช่องโหว่ใน Library กรุณาตรวจสอบรายละเอียดด้านบน"
+
+      # รัน Trivy สแกนไฟล์ (ตรวจหาความลับและช่องโหว่ลึกๆ ฟรีสำหรับ Private Repo)
+      - name: Run Trivy Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
