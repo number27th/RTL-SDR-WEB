@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RTL-SDR V4 — คู่มืออ้างอิง</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Sarabun:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0e14;
+    --bg2: #0f1520;
+    --bg3: #151d2e;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --text: #c8d8e8;
+    --text-dim: #5a7a9a;
+    --border: #1e3050;
+    --glow: 0 0 20px rgba(0, 212, 255, 0.3);
+    --glow2: 0 0 20px rgba(255, 107, 53, 0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(ellipse at 20% 0%, rgba(0,212,255,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(255,107,53,0.05) 0%, transparent 50%);
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0a0e14 0%, #0f1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  }
+
+  .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 2.2rem;
+    color: var(--accent);
+    text-shadow: var(--glow);
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+
+  .logo span {
+    color: var(--accent2);
+    text-shadow: var(--glow2);
+  }
+
+  .header-text h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 1px;
+  }
+
+  .header-text p {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* NAV TABS */
+  .nav {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar { display: none; }
+
+  .nav a {
+    display: inline-block;
+    padding: 0.9rem 1.4rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 1px;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .nav a.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+
+  .nav a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* SECTION */
+  section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 2px;
+  }
+
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+  }
+
+  /* TABLE */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg2);
+  }
+
+  thead th {
+    background: var(--bg3);
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    padding: 0.9rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30,48,80,0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: rgba(0,212,255,0.04); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    vertical-align: middle;
+  }
+
+  .mono {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent);
+    font-size: 0.85rem;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-wfm { background: rgba(57,255,20,0.1); color: #39ff14; border: 1px solid rgba(57,255,20,0.3); }
+  .tag-nfm { background: rgba(0,212,255,0.1); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); }
+  .tag-am  { background: rgba(255,107,53,0.1); color: #ff6b35; border: 1px solid rgba(255,107,53,0.3); }
+  .tag-usb { background: rgba(200,100,255,0.1); color: #c864ff; border: 1px solid rgba(200,100,255,0.3); }
+  .tag-lsb { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
+  .tag-dsb { background: rgba(255,50,100,0.1); color: #ff3264; border: 1px solid rgba(255,50,100,0.3); }
+
+  /* CARD GRID */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+
+  .card-cyan::before { background: var(--accent); }
+  .card-orange::before { background: var(--accent2); }
+  .card-green::before { background: var(--accent3); }
+  .card-purple::before { background: #c864ff; }
+
+  .card:hover { border-color: rgba(0,212,255,0.4); }
+
+  .card-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title .freq {
+    color: var(--accent2);
+    font-size: 1rem;
+  }
+
+  .card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(30,48,80,0.5);
+    font-size: 0.85rem;
+  }
+
+  .card-row:last-child { border-bottom: none; }
+
+  .card-label { color: var(--text-dim); font-size: 0.8rem; }
+  .card-val { color: #fff; font-weight: 600; text-align: right; }
+
+  /* ANTENNA SECTION */
+  .antenna-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  .antenna-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+
+  .antenna-card:hover { border-color: rgba(255,107,53,0.4); }
+
+  .ant-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ant-freq {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    color: var(--accent2);
+  }
+
+  .ant-band {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .ant-length {
+    text-align: right;
+  }
+
+  .ant-length .big {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.4rem;
+    color: var(--accent3);
+    display: block;
+  }
+
+  .ant-length .label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  .ant-detail {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+  }
+
+  .ant-detail span { color: var(--text); }
+
+  /* SETTINGS */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+
+  .setting-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .setting-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+  }
+
+  .setting-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+
+  .setting-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    border: 1px solid;
+    text-align: center;
+    min-width: 80px;
+  }
+
+  .val-on  { color: var(--accent3); border-color: rgba(57,255,20,0.4); background: rgba(57,255,20,0.08); }
+  .val-off { color: #ff4466; border-color: rgba(255,68,102,0.4); background: rgba(255,68,102,0.08); }
+  .val-num { color: var(--accent); border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.08); }
+  .val-ctx { color: var(--accent2); border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.08); font-size: 0.75rem; }
+
+  /* DECODE */
+  .decode-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+
+  .decode-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .decode-card::after {
+    content: attr(data-diff);
+    position: absolute;
+    top: 1rem; right: 1rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+  }
+
+  .diff-easy::after { content: '⭐ ง่าย'; color: var(--accent3); background: rgba(57,255,20,0.1); }
+  .diff-mid::after { content: '⭐⭐ ปานกลาง'; color: var(--accent2); background: rgba(255,107,53,0.1); }
+
+  .decode-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1rem;
+    color: #fff;
+    margin-bottom: 0.25rem;
+  }
+
+  .decode-sub {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+
+  .decode-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(30,48,80,0.4);
+  }
+
+  .decode-row:last-child { border-bottom: none; }
+  .decode-row .k { color: var(--text-dim); }
+  .decode-row .v { color: var(--text); font-weight: 600; }
+
+  /* TIPS */
+  .tip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .tip {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 0.9rem 1.2rem;
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .tip-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+  }
+
+  .tip-warn { border-left-color: var(--accent2); }
+  .tip-ok   { border-left-color: var(--accent3); }
+
+  /* CALCULATOR */
+  .calc-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .calc-input-area {
+    padding: 2rem;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .calc-field {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  .calc-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .calc-input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .calc-input-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.1);
+  }
+
+  .calc-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--accent);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.4rem;
+    padding: 0.6rem 1rem;
+    width: 100%;
+    letter-spacing: 1px;
+  }
+
+  .calc-input::placeholder { color: rgba(0,212,255,0.25); }
+
+  .calc-unit {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    padding: 0 1rem;
+    white-space: nowrap;
+  }
+
+  .calc-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+  }
+
+  .preset-btn {
+    background: rgba(0,212,255,0.05);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+
+  .preset-btn:hover {
+    background: rgba(0,212,255,0.15);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .calc-btn {
+    background: linear-gradient(135deg, var(--accent), #0090b3);
+    border: none;
+    border-radius: 6px;
+    color: #000;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.75rem 2rem;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .calc-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,212,255,0.4);
+  }
+
+  .calc-result {
+    padding: 2rem;
+    display: none;
+  }
+
+  .calc-result.show { display: block; }
+
+  .result-top {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .result-chip {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .result-chip-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    margin-bottom: 0.4rem;
+  }
+
+  .result-chip-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .result-chip-sub {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-top: 0.2rem;
+  }
+
+  .result-details {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .result-details h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+  }
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid rgba(30,48,80,0.5);
+    font-size: 0.85rem;
+    gap: 1rem;
+  }
+
+  .detail-row:last-child { border-bottom: none; }
+  .detail-k { color: var(--text-dim); flex-shrink: 0; }
+  .detail-v { color: var(--text); text-align: right; }
+  .detail-v strong { color: #fff; }
+
+  .result-notes {
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.25rem;
+  }
+
+  .result-notes h4 {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    margin-bottom: 0.75rem;
+  }
+
+  .note-item {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.84rem;
+    padding: 0.25rem 0;
+    color: var(--text);
+  }
+
+  .note-icon { flex-shrink: 0; }
+
+  .band-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    margin-bottom: 0.5rem;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+    letter-spacing: 1px;
+    margin-top: 2rem;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    main { padding: 1rem; }
+    .card-grid, .antenna-grid, .settings-grid, .decode-grid { grid-template-columns: 1fr; }
+    .logo { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">RTL<span>-SDR</span></div>
+    <div class="header-text">
+      <h1>คู่มืออ้างอิง RTL-SDR Blog V4</h1>
+      <p>// OFFLINE REFERENCE GUIDE — ใช้งานได้โดยไม่ต้องเชื่อมต่ออินเทอร์เน็ต</p>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <a href="#calc">🧮 คำนวณความถี่</a>
+  <a href="#modes">โหมดรับสัญญาณ</a>
+  <a href="#freq">ความถี่หลัก</a>
+  <a href="#antenna">เสาอากาศ</a>
+  <a href="#decode">Decode สัญญาณ</a>
+  <a href="#sdrangel">SDRangel Android</a>
+  <a href="#sdrpp">SDR++ Android</a>
+  <a href="#tips">เคล็ดลับ</a>
+</nav>
+
+<main>
+
+  <!-- SECTION 0: CALCULATOR -->
+  <section id="calc">
+    <div class="section-header">
+      <span class="section-num" style="background:rgba(255,107,53,0.1);color:var(--accent2);border-color:rgba(255,107,53,0.3);">CALC</span>
+      <span class="section-title">คำนวณความถี่ — โหมด, เสาอากาศ และรายละเอียด</span>
+    </div>
+
+    <div class="calc-box">
+      <div class="calc-input-area">
+        <div class="calc-field">
+          <label class="calc-label">กรอกความถี่ที่ต้องการ <span style="color:var(--accent2)">(รองรับ 500 kHz – 1766 MHz)</span></label>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+            <div class="calc-input-wrap" style="flex:1;min-width:180px">
+              <input class="calc-input" type="number" id="freqInput" placeholder="530" step="any" min="0" oninput="updateConvert();autoCalc()">
+              <span class="calc-unit" id="unitLabel">kHz</span>
+            </div>
+            <div style="display:flex;gap:0.3rem">
+              <button class="preset-btn" id="btnKHz" onclick="setUnit('kHz')" style="border-color:var(--accent);color:var(--accent)">kHz</button>
+              <button class="preset-btn" id="btnMHz" onclick="setUnit('MHz')">MHz</button>
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-dim);margin-top:0.4rem;font-family:'Share Tech Mono',monospace" id="freqConvert"></div>
+          <div class="calc-presets" style="margin-top:0.75rem">
+            <span style="font-size:0.7rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px">VLF/LF:</span>
+            <button class="preset-btn" onclick="setFreqKHz(40)">VLF 40k</button>
+            <button class="preset-btn" onclick="setFreqKHz(77.5)">DCF77</button>
+            <button class="preset-btn" onclick="setFreqKHz(300)">NDB 300k</button>
+            <button class="preset-btn" onclick="setFreqKHz(500)">MF 500k</button>
+            <span style="font-size:0.7rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px">AM/MF:</span>
+            <button class="preset-btn" onclick="setFreqKHz(530)">AM 530k</button>
+            <button class="preset-btn" onclick="setFreqKHz(900)">AM 900k</button>
+            <button class="preset-btn" onclick="setFreqKHz(1395)">AM 1395k</button>
+            <span style="font-size:0.7rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px">HF:</span>
+            <button class="preset-btn" onclick="setFreqMHz(7.2)">7.2 MHz</button>
+            <button class="preset-btn" onclick="setFreqMHz(14.2)">14.2 MHz</button>
+            <span style="font-size:0.7rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace;letter-spacing:1px">VHF/UHF:</span>
+            <button class="preset-btn" onclick="setFreqMHz(98)">FM 98</button>
+            <button class="preset-btn" onclick="setFreqMHz(121.5)">เครื่องบิน</button>
+            <button class="preset-btn" onclick="setFreqMHz(137.62)">NOAA-15</button>
+            <button class="preset-btn" onclick="setFreqMHz(144.39)">APRS</button>
+            <button class="preset-btn" onclick="setFreqMHz(168)">VHF 168</button>
+            <button class="preset-btn" onclick="setFreqMHz(245)">สื่อสารแดง</button>
+            <button class="preset-btn" onclick="setFreqMHz(433.92)">ISM 433</button>
+            <button class="preset-btn" onclick="setFreqMHz(131.55)">ACARS</button>
+            <button class="preset-btn" onclick="setFreqMHz(1090)">ADS-B</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-result" id="calcResult">
+        <div class="result-top" id="resultTop"></div>
+        <div class="result-details" id="resultDetails"></div>
+        <div class="result-notes" id="resultNotes"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 1: MODES -->
+
+  <section id="modes">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">Demodulation Mode — โหมดรับสัญญาณ</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>MODE</th>
+            <th>ใช้กับ</th>
+            <th>BANDWIDTH</th>
+            <th>ย่านความถี่</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-wfm">WFM</span></td>
+            <td>วิทยุ FM ปกติ</td>
+            <td class="mono">150–200 kHz</td>
+            <td class="mono">88–108 MHz</td>
+            <td>Wide FM สำหรับรายการวิทยุทั่วไป</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-nfm">NFM</span></td>
+            <td>วิทยุสื่อสาร VHF/UHF</td>
+            <td class="mono">8–12.5 kHz</td>
+            <td class="mono">136–500 MHz</td>
+            <td>กู้ภัย ตำรวจ ท่าเรือ แท็กซี่</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-am">AM</span></td>
+            <td>วิทยุเครื่องบิน / AM ปกติ</td>
+            <td class="mono">6–10 kHz</td>
+            <td class="mono">118–136 MHz / 530–1700 kHz</td>
+            <td>เครื่องบินทั่วโลกใช้ AM เสมอ</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-usb">USB</span></td>
+            <td>คลื่นสั้น HF / วิทยุสมัครเล่น</td>
+            <td class="mono">2.4–3 kHz</td>
+            <td class="mono">10–30 MHz</td>
+            <td>ต้องจูนแม่นมาก ผิดนิดเดียวเสียงเพี้ยน</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-lsb">LSB</span></td>
+            <td>คลื่นสั้น HF ความถี่ต่ำ</td>
+            <td class="mono">2.4–3 kHz</td>
+            <td class="mono">1.8–10 MHz</td>
+            <td>คล้าย USB แต่ใช้กับย่านต่ำกว่า</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-dsb">DSB</span></td>
+            <td>NDB สนามบิน / AM พิเศษ</td>
+            <td class="mono">6–10 kHz</td>
+            <td class="mono">200–500 kHz</td>
+            <td>รับทั้ง Upper+Lower Sideband พร้อมกัน</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-nfm">CW</span></td>
+            <td>รหัส Morse</td>
+            <td class="mono">0.5–1 kHz</td>
+            <td class="mono">HF ทุกย่าน</td>
+            <td>ได้ยินเป็นเสียงบี๊บสั้นยาว</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-usb">RAW</span></td>
+            <td>บันทึก IQ ดิบ</td>
+            <td class="mono">ตาม Sample Rate</td>
+            <td class="mono">ทุกย่าน</td>
+            <td>ไม่มีเสียง ใช้ส่งต่อโปรแกรม Decode</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 2: FREQUENCIES -->
+  <section id="freq">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">ความถี่หลักที่น่าสนใจ</span>
+    </div>
+    <div class="card-grid">
+
+      <div class="card card-cyan">
+        <div class="card-title"><span class="freq">88–108 MHz</span> — วิทยุ FM</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-wfm">WFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">200 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">69–85 cm</span></div>
+        <div class="card-row"><span class="card-label">Direct Sampling</span><span class="card-val">Disabled</span></div>
+      </div>
+
+      <div class="card card-orange">
+        <div class="card-title"><span class="freq">118–136 MHz</span> — วิทยุเครื่องบิน</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-am">AM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">8–10 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">52–60 cm</span></div>
+        <div class="card-row"><span class="card-label">Direct Sampling</span><span class="card-val">Disabled</span></div>
+      </div>
+
+      <div class="card card-green">
+        <div class="card-title"><span class="freq">137–138 MHz</span> — NOAA ดาวเทียม</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-wfm">WFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">34–40 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">54 cm</span></div>
+        <div class="card-row"><span class="card-label">NOAA-15</span><span class="card-val mono">137.620 MHz</span></div>
+        <div class="card-row"><span class="card-label">NOAA-18</span><span class="card-val mono">137.9125 MHz</span></div>
+        <div class="card-row"><span class="card-label">NOAA-19</span><span class="card-val mono">137.100 MHz</span></div>
+      </div>
+
+      <div class="card card-cyan">
+        <div class="card-title"><span class="freq">136–174 MHz</span> — VHF สื่อสาร</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">12.5 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">43–55 cm</span></div>
+        <div class="card-row"><span class="card-label">Direct Sampling</span><span class="card-val">Disabled</span></div>
+      </div>
+
+      <div class="card card-orange">
+        <div class="card-title"><span class="freq">~168 MHz</span> — VHF สื่อสาร</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">12.5 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">44 cm</span></div>
+        <div class="card-row"><span class="card-label">Direct Sampling</span><span class="card-val">Disabled</span></div>
+      </div>
+
+      <div class="card card-purple">
+        <div class="card-title"><span class="freq">144.390 MHz</span> — APRS</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">12.5 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">51 cm</span></div>
+        <div class="card-row"><span class="card-label">โปรแกรม Decode</span><span class="card-val">Direwolf</span></div>
+      </div>
+
+      <div class="card card-green">
+        <div class="card-title"><span class="freq">~245 MHz</span> — วิทยุสื่อสารแดง/ดำ</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">12.5 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">30 cm</span></div>
+        <div class="card-row"><span class="card-label">Direct Sampling</span><span class="card-val">Disabled</span></div>
+      </div>
+
+      <div class="card card-cyan">
+        <div class="card-title"><span class="freq">131.550 MHz</span> — ACARS เครื่องบิน</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-am">AM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">8–10 kHz</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">57 cm</span></div>
+        <div class="card-row"><span class="card-label">โปรแกรม Decode</span><span class="card-val">ACARSD</span></div>
+      </div>
+
+      <div class="card card-orange">
+        <div class="card-title"><span class="freq">1090 MHz</span> — ADS-B เครื่องบิน</div>
+        <div class="card-row"><span class="card-label">Mode</span><span class="card-val"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="card-row"><span class="card-label">Bandwidth</span><span class="card-val mono">—</span></div>
+        <div class="card-row"><span class="card-label">ความยาวเสา/ข้าง</span><span class="card-val mono">6.5 cm</span></div>
+        <div class="card-row"><span class="card-label">โปรแกรม Decode</span><span class="card-val">dump1090 / SDRangel</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 3: ANTENNA -->
+  <section id="antenna">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">เสาอากาศ — ความยาวที่เหมาะสม</span>
+    </div>
+
+    <div class="tip tip-ok" style="margin-bottom:1rem;">
+      <span class="tip-icon">ℹ️</span>
+      <span>เสาแบบ <strong>Dipole (สองแขน)</strong> → ความยาว <strong>ต่อแขน</strong> ตามตาราง | เสาแบบ <strong>Monopole (แขนเดียว)</strong> → ใช้ความยาวเดียวกัน | ตั้งเสา <strong>แนวตั้ง</strong> เสมอสำหรับ VHF/UHF</span>
+    </div>
+
+    <div class="antenna-grid">
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">88–108 MHz</div>
+            <div class="ant-band">วิทยุ FM</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">69–85 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-wfm">WFM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวตั้ง</span></div>
+      </div>
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">118–136 MHz</div>
+            <div class="ant-band">วิทยุเครื่องบิน</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">52–60 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-am">AM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวตั้ง</span></div>
+      </div>
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">137 MHz</div>
+            <div class="ant-band">NOAA ดาวเทียม</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">54 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-wfm">WFM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวนอน / QFH ดีกว่า</span></div>
+      </div>
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">144–174 MHz</div>
+            <div class="ant-band">VHF สื่อสาร</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">43–51 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวตั้ง</span></div>
+      </div>
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">168 MHz</div>
+            <div class="ant-band">VHF สื่อสาร</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">44 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวตั้ง</span></div>
+      </div>
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">~245 MHz</div>
+            <div class="ant-band">วิทยุสื่อสารแดง/ดำ</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">30 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวตั้ง</span></div>
+      </div>
+
+      <div class="antenna-card">
+        <div class="ant-head">
+          <div>
+            <div class="ant-freq">1090 MHz</div>
+            <div class="ant-band">ADS-B เครื่องบิน</div>
+          </div>
+          <div class="ant-length">
+            <span class="big">6.5 cm</span>
+            <span class="label">ต่อแขน</span>
+          </div>
+        </div>
+        <div class="ant-detail">Mode <span><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="ant-detail">ทิศทางเสา <span>แนวตั้ง</span></div>
+      </div>
+
+    </div>
+
+    <!-- Antenna types -->
+    <div style="margin-top:1.5rem;">
+      <div class="section-header" style="margin-top:1rem;">
+        <span class="section-num" style="background:rgba(255,107,53,0.1);color:var(--accent2);border-color:rgba(255,107,53,0.3);">TIP</span>
+        <span class="section-title" style="font-size:1rem;">ประเภทเสาอากาศ — เลือกให้เหมาะกับงาน</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ประเภท</th>
+              <th>ใช้กับ</th>
+              <th>ข้อดี</th>
+              <th>ข้อเสีย</th>
+              <th>ทำเองได้?</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Telescopic (แถมมากับกล่อง)</strong></td>
+              <td>ทุกย่าน ปรับได้</td>
+              <td>ยืดหดได้ พกพาง่าย</td>
+              <td>ไม่เก่งย่านใดเป็นพิเศษ</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>Dipole (สองแขน)</strong></td>
+              <td>FM, VHF, UHF</td>
+              <td>รอบทิศทางดีขึ้น</td>
+              <td>ต้องปรับความยาวตามย่าน</td>
+              <td>✅ ง่าย</td>
+            </tr>
+            <tr>
+              <td><strong>Yagi (ก้างปลา)</strong></td>
+              <td>FM, VHF ทิศทางเดียว</td>
+              <td>แรงมากในทิศทางเดียว</td>
+              <td>ต้องหันเสาให้ตรง</td>
+              <td>✅ ปานกลาง</td>
+            </tr>
+            <tr>
+              <td><strong>Colinear</strong></td>
+              <td>ADS-B 1090 MHz</td>
+              <td>รับไกล รอบทิศทาง</td>
+              <td>ทำยากกว่า Dipole</td>
+              <td>✅ ง่าย ราคาถูก</td>
+            </tr>
+            <tr>
+              <td><strong>QFH / Turnstile</strong></td>
+              <td>NOAA ดาวเทียม</td>
+              <td>รับ Circular Polarization ได้เต็มที่</td>
+              <td>ซับซ้อน</td>
+              <td>✅ ยากกว่า</td>
+            </tr>
+            <tr>
+              <td><strong>Discone</strong></td>
+              <td>FM ถึง UHF ทุกย่าน</td>
+              <td>ไม่ต้องปรับ รับได้กว้าง</td>
+              <td>ราคาแพง ขนาดใหญ่</td>
+              <td>❌ ยาก</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5: DECODE -->
+  <section id="decode">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">Decode สัญญาณ — โปรแกรมและวิธีใช้</span>
+    </div>
+    <div class="decode-grid">
+
+      <div class="decode-card diff-easy">
+        <div class="decode-name">ADS-B</div>
+        <div class="decode-sub">ติดตามตำแหน่งเครื่องบิน</div>
+        <div class="decode-row"><span class="k">ความถี่</span><span class="v mono">1090 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="decode-row"><span class="k">ความยาวเสา</span><span class="v mono">6.5 cm/ข้าง</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม Android</span><span class="v">SDRangel</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม Windows</span><span class="v">dump1090 + VRS</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">ตำแหน่ง ความสูง ความเร็ว</span></div>
+      </div>
+
+      <div class="decode-card diff-mid">
+        <div class="decode-name">NOAA APT</div>
+        <div class="decode-sub">ภาพถ่ายดาวเทียมอุตุนิยมวิทยา</div>
+        <div class="decode-row"><span class="k">NOAA-15</span><span class="v mono">137.620 MHz</span></div>
+        <div class="decode-row"><span class="k">NOAA-18</span><span class="v mono">137.9125 MHz</span></div>
+        <div class="decode-row"><span class="k">NOAA-19</span><span class="v mono">137.100 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-wfm">WFM</span> 34–40 kHz</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">WXtoImg / noaa-apt</span></div>
+        <div class="decode-row"><span class="k">ดูเวลาผ่าน</span><span class="v">Heavens-Above</span></div>
+      </div>
+
+      <div class="decode-card diff-mid">
+        <div class="decode-name">ACARS</div>
+        <div class="decode-sub">ข้อความดิจิทัลเครื่องบิน</div>
+        <div class="decode-row"><span class="k">ความถี่หลัก (เอเชีย)</span><span class="v mono">131.550 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-am">AM</span></span></div>
+        <div class="decode-row"><span class="k">Bandwidth</span><span class="v mono">8–10 kHz</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">ACARSD / VDL2-dec</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">สถานะเที่ยวบิน ข้อความ</span></div>
+      </div>
+
+      <div class="decode-card diff-mid">
+        <div class="decode-name">APRS</div>
+        <div class="decode-sub">ติดตามยานพาหนะ/วิทยุสมัครเล่น</div>
+        <div class="decode-row"><span class="k">ความถี่ (ไทย)</span><span class="v mono">144.390 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="decode-row"><span class="k">Bandwidth</span><span class="v mono">12.5 kHz</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">Direwolf + APRS.fi</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">ตำแหน่ง ข้อความสั้น</span></div>
+      </div>
+
+      <div class="decode-card diff-easy">
+        <div class="decode-name">วิทยุสื่อสาร VHF/UHF</div>
+        <div class="decode-sub">ฟังการสื่อสารต่างๆ</div>
+        <div class="decode-row"><span class="k">กู้ภัย / ตำรวจ</span><span class="v mono">VHF/UHF NFM</span></div>
+        <div class="decode-row"><span class="k">ท่าเรือ Marine</span><span class="v mono">156–174 MHz NFM</span></div>
+        <div class="decode-row"><span class="k">วิทยุสื่อสารแดง</span><span class="v mono">~245 MHz NFM</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">SDR++ / SDRangel</span></div>
+        <div class="decode-row"><span class="k">ไม่ต้อง Decode</span><span class="v">ฟังเสียงตรงๆ</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION: SDRangel Android -->
+  <section id="sdrangel">
+    <div class="section-header">
+      <span class="section-num" style="background:rgba(57,255,20,0.1);color:var(--accent3);border-color:rgba(57,255,20,0.3)">APP</span>
+      <span class="section-title">SDRangel — การตั้งค่าบน Android</span>
+    </div>
+    <div class="tip tip-ok" style="margin-bottom:1.5rem">
+      <span class="tip-icon">📱</span>
+      <span>SDRangel บน Android ฟรี 100% ไม่จำกัดเวลา รองรับ RTL-SDR V4 ได้เต็มที่ และฟังหลายความถี่พร้อมกันได้</span>
+    </div>
+    <div class="result-details" style="margin-bottom:1rem">
+      <h4>// ขั้นตอนเชื่อมต่อ RTL-SDR V4</h4>
+      <div class="detail-row"><span class="detail-k">1. ต่อสาย</span><span class="detail-v">USB-C OTG → RTL-SDR V4 แล้วเปิดแอป</span></div>
+      <div class="detail-row"><span class="detail-k">2. Add Device</span><span class="detail-v">กดไอคอน + เลือก <strong>RTL-SDR</strong> จากรายการ</span></div>
+      <div class="detail-row"><span class="detail-k">3. USB Permission</span><span class="detail-v">กด <strong>OK</strong> และติ๊ก "ใช้เป็นค่าเริ่มต้น" ด้วย</span></div>
+      <div class="detail-row"><span class="detail-k">4. Start</span><span class="detail-v">กดปุ่ม <strong>▶ Play</strong> ที่ Toolbar บนสุด</span></div>
+    </div>
+    <div class="settings-grid" style="margin-bottom:1.5rem">
+      <div class="setting-item"><div><div class="setting-name">Sample Rate</div><div class="setting-desc">เสถียรที่สุดบน Android</div></div><div class="setting-val val-num">2.048 MHz</div></div>
+      <div class="setting-item"><div><div class="setting-name">PPM Correction</div><div class="setting-desc">V4 มี TCXO แม่นยำ</div></div><div class="setting-val val-num">0</div></div>
+      <div class="setting-item"><div><div class="setting-name">Gain Mode</div><div class="setting-desc">เริ่มต้นใช้ AGC ก่อน</div></div><div class="setting-val val-ctx">AGC → Manual</div></div>
+      <div class="setting-item"><div><div class="setting-name">DC Block</div><div class="setting-desc">เทียบเท่า Offset Tuning</div></div><div class="setting-val val-on">เปิด ✓</div></div>
+      <div class="setting-item"><div><div class="setting-name">IQ Correction</div><div class="setting-desc">ลด Mirror Image</div></div><div class="setting-val val-on">เปิด ✓</div></div>
+      <div class="setting-item"><div><div class="setting-name">Bias-T</div><div class="setting-desc">เปิดเฉพาะมี LNA ต่ออยู่</div></div><div class="setting-val val-off">ปิด</div></div>
+      <div class="setting-item"><div><div class="setting-name">Direct Sampling (ปกติ)</div><div class="setting-desc">FM/VHF/UHF/ADS-B</div></div><div class="setting-val val-off">Disabled</div></div>
+      <div class="setting-item"><div><div class="setting-name">Direct Sampling (HF/LF)</div><div class="setting-desc">ต่ำกว่า 24 MHz</div></div><div class="setting-val val-num">Q Branch</div></div>
+    </div>
+    <div class="result-details" style="margin-bottom:1rem">
+      <h4>// Channel Plugin — ต้องเพิ่มก่อนถึงจะได้ยินเสียง</h4>
+      <div class="detail-row"><span class="detail-k">วิธีเพิ่ม</span><span class="detail-v">กดปุ่ม <strong>+</strong> ที่แผงขวา → เลือก Plugin ที่ต้องการ</span></div>
+      <div class="detail-row"><span class="detail-k">วิทยุ FM</span><span class="detail-v"><strong>WFM Demodulator</strong> — Bandwidth 200 kHz</span></div>
+      <div class="detail-row"><span class="detail-k">วิทยุสื่อสาร VHF/UHF</span><span class="detail-v"><strong>NFM Demodulator</strong> — Bandwidth 12.5 kHz</span></div>
+      <div class="detail-row"><span class="detail-k">วิทยุเครื่องบิน</span><span class="detail-v"><strong>AM Demodulator</strong> — Bandwidth 8–10 kHz</span></div>
+      <div class="detail-row"><span class="detail-k">คลื่นสั้น HF</span><span class="detail-v"><strong>SSB Demodulator</strong> — Bandwidth 2.4 kHz</span></div>
+      <div class="detail-row"><span class="detail-k">ADS-B เครื่องบิน</span><span class="detail-v"><strong>ADS-B Demodulator</strong> — จูนที่ 1090 MHz</span></div>
+      <div class="detail-row"><span class="detail-k">Squelch</span><span class="detail-v"><strong>ลดลงก่อนเสมอ</strong> ถ้าไม่ได้ยินเสียง นี่คือสาเหตุหลัก</span></div>
+      <div class="detail-row"><span class="detail-k">Audio Output</span><span class="detail-v">ตรวจให้แน่ใจว่าเลือก output ถูก (speaker/หูฟัง)</span></div>
+    </div>
+    <div class="result-notes">
+      <h4>// แก้ปัญหาที่พบบ่อยใน SDRangel</h4>
+      <div class="note-item"><span class="note-icon">❌</span><span><strong>ไม่เห็น RTL-SDR</strong> — ถอดและเสียบสาย OTG ใหม่ ลองสาย OTG เส้นอื่นถ้ายังไม่เห็น</span></div>
+      <div class="note-item"><span class="note-icon">🔇</span><span><strong>ไม่ได้ยินเสียง</strong> — เพิ่ม Channel Plugin แล้วหรือยัง? และ Squelch ต้องต่ำหรือปิดก่อน</span></div>
+      <div class="note-item"><span class="note-icon">📺</span><span><strong>Spectrum กระตุก</strong> — ลด Sample Rate เหลือ 2.048 MHz และตรวจสาย OTG</span></div>
+      <div class="note-item"><span class="note-icon">📡</span><span><strong>ADS-B ไม่แสดงเครื่องบิน</strong> — จูนที่ 1090 MHz และย่อเสาเหลือ 6.5 cm/ข้าง</span></div>
+    </div>
+  </section>
+
+  <section id="sdrpp">
+    <div class="section-header">
+      <span class="section-num" style="background:rgba(200,100,255,0.1);color:#c864ff;border-color:rgba(200,100,255,0.3)">APP</span>
+      <span class="section-title">SDR++ — การตั้งค่าบน Android</span>
+    </div>
+
+    <div class="tip tip-warn" style="margin-bottom:1.5rem">
+      <span class="tip-icon">⚠️</span>
+      <span>SDR++ บน Android ยังเป็น <strong>Beta</strong> อยู่ครับ อาจไม่เสถียรเท่า SDRangel บางรุ่นของ Android อาจมีปัญหา USB</span>
+    </div>
+
+    <!-- Device Setup -->
+    <div class="result-details" style="margin-bottom:1rem">
+      <h4>// ขั้นตอนเชื่อมต่อ RTL-SDR V4</h4>
+      <div class="detail-row"><span class="detail-k">1. ต่อสาย</span><span class="detail-v">USB-C OTG → RTL-SDR V4 ก่อนเปิดแอป</span></div>
+      <div class="detail-row"><span class="detail-k">2. Source</span><span class="detail-v">เลือก <strong>RTL-SDR</strong> ที่ช่อง Source ด้านบน</span></div>
+      <div class="detail-row"><span class="detail-k">3. Refresh</span><span class="detail-v">กด <strong>Refresh</strong> ทุกครั้งหลังเสียบ USB</span></div>
+      <div class="detail-row"><span class="detail-k">4. Play</span><span class="detail-v">กดปุ่ม <strong>▶</strong> เพื่อเริ่มรับสัญญาณ</span></div>
+    </div>
+
+    <!-- Source Settings -->
+    <div class="settings-grid" style="margin-bottom:1.5rem">
+      <div class="setting-item">
+        <div><div class="setting-name">Sample Rate</div><div class="setting-desc">เสถียรที่สุดบน Android OTG</div></div>
+        <div class="setting-val val-num">2.048 MHz</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Sample Rate (สูงสุด)</div><div class="setting-desc">ถ้าไม่กระตุก ลองเพิ่มได้</div></div>
+        <div class="setting-val val-num">2.56 MHz</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Direct Sampling</div><div class="setting-desc">FM / VHF / UHF / ADS-B</div></div>
+        <div class="setting-val val-off">Disabled</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Direct Sampling</div><div class="setting-desc">HF / AM / LF ต่ำกว่า 24 MHz</div></div>
+        <div class="setting-val val-num">Q Branch</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">PPM Correction</div><div class="setting-desc">V4 มี TCXO ไม่ต้องปรับ</div></div>
+        <div class="setting-val val-num">0</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">RTL AGC / Tuner AGC</div><div class="setting-desc">ปล่อยให้ปรับอัตโนมัติ หรือปิดแล้ว Manual</div></div>
+        <div class="setting-val val-ctx">AGC หรือ Manual</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">IQ Correction</div><div class="setting-desc">ลด Mirror Image เปิดไว้เสมอ</div></div>
+        <div class="setting-val val-on">เปิด ✓</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Offset Tuning</div><div class="setting-desc">ลด DC Spike เปิดไว้เสมอ</div></div>
+        <div class="setting-val val-on">เปิด ✓</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Bias-T</div><div class="setting-desc">เปิดเฉพาะมี LNA ต่ออยู่เท่านั้น</div></div>
+        <div class="setting-val val-off">ปิด</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Offset Mode</div><div class="setting-desc">ขั้นสูง ยังไม่จำเป็น</div></div>
+        <div class="setting-val val-off">None</div>
+      </div>
+      <div class="setting-item">
+        <div><div class="setting-name">Decimation</div><div class="setting-desc">ขั้นสูง ยังไม่จำเป็น</div></div>
+        <div class="setting-val val-off">None</div>
+      </div>
+    </div>
+
+    <!-- Demodulation -->
+    <div class="result-details" style="margin-bottom:1rem">
+      <h4>// Demodulation — ตั้งค่าฟังเสียงใน SDR++</h4>
+      <div class="detail-row"><span class="detail-k">วิธีเลือก Mode</span><span class="detail-v">คลิกที่ <strong>ชื่อ Mode</strong> บนแถบ Spectrum (WFM / NFM / AM ฯลฯ)</span></div>
+      <div class="detail-row"><span class="detail-k">วิธีจูนความถี่</span><span class="detail-v">คลิกที่ตัวเลขความถี่ด้านบน หรือลากใน Spectrum</span></div>
+      <div class="detail-row"><span class="detail-k">Bandwidth</span><span class="detail-v">ลากขอบ <strong>กรอบสีเหลือง</strong> ใน Spectrum ให้กว้างตามต้องการ</span></div>
+      <div class="detail-row"><span class="detail-k">Squelch</span><span class="detail-v">ลากเส้น <strong>Squelch ในกราฟ</strong> ลงมาต่ำกว่าระดับสัญญาณ</span></div>
+      <div class="detail-row"><span class="detail-k">Volume</span><span class="detail-v">ปรับที่ไอคอนลำโพงด้านบนซ้าย</span></div>
+    </div>
+
+    <!-- SDR++ vs SDRangel -->
+    <div class="table-wrap" style="margin-bottom:1rem">
+      <table>
+        <thead>
+          <tr>
+            <th>ด้าน</th>
+            <th>SDR++ Android</th>
+            <th>SDRangel Android</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ความเสถียร</td>
+            <td>Beta — อาจมีปัญหาบ้าง</td>
+            <td>เสถียรกว่า แนะนำกว่า</td>
+          </tr>
+          <tr>
+            <td>UI</td>
+            <td>ง่ายกว่า คล้าย Windows</td>
+            <td>ซับซ้อนกว่า แต่ทรงพลังกว่า</td>
+          </tr>
+          <tr>
+            <td>ฟังหลายความถี่พร้อมกัน</td>
+            <td>❌ ทำไม่ได้</td>
+            <td>✅ Plugin หลายตัว</td>
+          </tr>
+          <tr>
+            <td>ADS-B Decoder ในตัว</td>
+            <td>❌ ต้องใช้แอปแยก</td>
+            <td>✅ มีในตัว</td>
+          </tr>
+          <tr>
+            <td>แนะนำสำหรับ</td>
+            <td>มือใหม่ที่ใช้ Windows แล้ว</td>
+            <td>ใช้งานจริงจัง ฟีเจอร์เต็ม</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="result-notes">
+      <h4>// แก้ปัญหาที่พบบ่อยใน SDR++ Android</h4>
+      <div class="note-item"><span class="note-icon">🔇</span><span><strong>ไม่ได้ยินเสียง</strong> — ลด Squelch ลงต่ำกว่าระดับ noise floor ก่อนเสมอ</span></div>
+      <div class="note-item"><span class="note-icon">👻</span><span><strong>เส้นตั้งตรงกลาง Spectrum</strong> — DC Spike เปิด Offset Tuning จะหาย</span></div>
+      <div class="note-item"><span class="note-icon">🔀</span><span><strong>ความถี่คลาดเคลื่อน</strong> — เปิด IQ Correction และ Offset Tuning</span></div>
+      <div class="note-item"><span class="note-icon">📺</span><span><strong>Spectrum กระตุก</strong> — ลด Sample Rate เหลือ 2.048 MHz และตรวจสาย OTG</span></div>
+      <div class="note-item"><span class="note-icon">🔁</span><span><strong>ไม่เจอ RTL-SDR</strong> — กด Refresh ใน Source Panel ทุกครั้งหลังเสียบ USB</span></div>
+    </div>
+  </section>
+
+  <!-- SECTION 6: TIPS -->
+  <section id="tips">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <span class="section-title">เคล็ดลับสำคัญที่ควรจำ</span>
+    </div>
+    <div class="tip-list">
+
+      <div class="tip tip-ok">
+        <span class="tip-icon">✅</span>
+        <span><strong>IQ Correction และ Offset Tuning</strong> — เปิดไว้เสมอ ไม่มีข้อเสียใดๆ ช่วยลด Mirror Image และ DC Spike</span>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">📡</span>
+        <span><strong>Direct Sampling</strong> — ตั้งเป็น Disabled สำหรับย่านปกติ (FM, VHF, UHF, ADS-B) เปลี่ยนเป็น Q Branch เฉพาะตอนฟังคลื่นสั้นต่ำกว่า 24 MHz</span>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">📶</span>
+        <span><strong>Gain</strong> — ถ้าใช้ AGC ได้แต่สัญญาณอ่อนๆ อาจหาย ลองปิด AGC แล้วปรับ Manual จนก่อน Noise Floor จะเริ่มสูงขึ้น</span>
+      </div>
+
+      <div class="tip tip-warn">
+        <span class="tip-icon">⚠️</span>
+        <span><strong>Bias-T</strong> — เปิดเฉพาะตอนมี LNA ต่ออยู่เท่านั้น ถ้าเปิดทิ้งไว้โดยที่สาย SMA แตะโลหะอาจทำให้วงจร Bias-T เสียถาวร แต่ตัว RTL-SDR ยังใช้งานได้ปกติ</span>
+      </div>
+
+      <div class="tip tip-warn">
+        <span class="tip-icon">⚠️</span>
+        <span><strong>Sample Rate บน Android</strong> — ไม่ควรเกิน 2.048–2.56 MHz เพราะ USB OTG มี bandwidth จำกัด ถ้าตั้งสูงเกินจะเกิด Sample Drop เสียงกระตุก</span>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">📏</span>
+        <span><strong>ความยาวเสา</strong> — Dipole สองแขนใช้ความยาว <strong>ต่อแขน</strong> ตามตาราง | Monopole แขนเดียวใช้ความยาวเดียวกัน | ตั้งเสาแนวตั้งสำหรับ VHF/UHF แนวนอนสำหรับ NOAA</span>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">🔍</span>
+        <span><strong>จำ Mode ไม่ได้</strong> — ต่ำกว่า 30 MHz ลอง USB ก่อน | 88–108 MHz ใช้ WFM เสมอ | 118–136 MHz ใช้ AM เสมอ | ที่เหลือลอง NFM ก่อนเป็นหลัก</span>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">🔇</span>
+        <span><strong>ไม่ได้ยินเสียง</strong> — ตรวจสอบ Squelch ก่อนเลย ลด Squelch ลงให้ต่ำที่สุดหรือปิดก่อน ถ้าได้ยินเสียงแล้วค่อยเพิ่มขึ้นจนเสียงซ่าหาย</span>
+      </div>
+
+      <div class="tip tip-ok">
+        <span class="tip-icon">🌐</span>
+        <span><strong>หาความถี่ที่ไม่รู้จัก</strong> — ค้นหาที่ <strong>radioreference.com</strong> หรือดูรูป Spectrum เทียบที่ <strong>sigidwiki.com</strong></span>
+      </div>
+
+      <div class="tip">
+        <span class="tip-icon">🛩️</span>
+        <span><strong>ADS-B</strong> — ย่อเสาเหลือ 6.5 cm/ข้าง เท่านั้น ถ้าใช้เสายาวสัญญาณจะอ่อนลงมาก เพราะความยาวผิดสัดส่วนกับ 1090 MHz</span>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+
+<footer>
+  RTL-SDR BLOG V4 — OFFLINE REFERENCE GUIDE // R828D CHIP // TCXO ±1PPM // 500kHz–1766MHz
+</footer>
+
+<script>
+let currentUnit = 'kHz';
+
+function setUnit(unit) {
+  const input = document.getElementById('freqInput');
+  const val = parseFloat(input.value);
+  currentUnit = unit;
+  document.getElementById('unitLabel').textContent = unit;
+  document.getElementById('btnKHz').style.cssText = unit === 'kHz' ? 'border-color:var(--accent);color:var(--accent)' : '';
+  document.getElementById('btnMHz').style.cssText = unit === 'MHz' ? 'border-color:var(--accent);color:var(--accent)' : '';
+  if (!isNaN(val) && val > 0) {
+    if (unit === 'MHz') {
+      input.value = currentUnit === 'MHz' ? val : parseFloat((val / 1000).toFixed(6));
+    } else {
+      input.value = currentUnit === 'kHz' ? val : parseFloat((val * 1000).toFixed(3));
+    }
+    updateConvert();
+  }
+}
+
+function setFreqKHz(khz) {
+  currentUnit = 'kHz';
+  document.getElementById('unitLabel').textContent = 'kHz';
+  document.getElementById('btnKHz').style.cssText = 'border-color:var(--accent);color:var(--accent)';
+  document.getElementById('btnMHz').style.cssText = '';
+  document.getElementById('freqInput').value = khz;
+  updateConvert();
+  calculate();
+}
+
+function setFreqMHz(mhz) {
+  currentUnit = 'MHz';
+  document.getElementById('unitLabel').textContent = 'MHz';
+  document.getElementById('btnMHz').style.cssText = 'border-color:var(--accent);color:var(--accent)';
+  document.getElementById('btnKHz').style.cssText = '';
+  document.getElementById('freqInput').value = mhz;
+  updateConvert();
+  calculate();
+}
+
+function setFreq(f) { setFreqMHz(f); }
+
+function updateConvert() {
+  const val = parseFloat(document.getElementById('freqInput').value);
+  if (isNaN(val) || val <= 0) { document.getElementById('freqConvert').textContent = ''; return; }
+  const mhz = currentUnit === 'kHz' ? val / 1000 : val;
+  const khz = currentUnit === 'kHz' ? val : val * 1000;
+  const valid = mhz >= 0.0005 && mhz <= 1766;
+  document.getElementById('freqConvert').innerHTML = valid
+    ? `= <span style="color:var(--accent)">${mhz >= 1 ? mhz.toFixed(4) + ' MHz' : khz.toFixed(1) + ' kHz'}</span> &nbsp;|&nbsp; ช่วงที่รองรับ: 500 kHz – 1766 MHz`
+    : `<span style="color:#ff4466">⚠️ เกินช่วงที่ V4 รองรับ (500 kHz – 1766 MHz)</span>`;
+}
+
+let calcTimer = null;
+function autoCalc() {
+  clearTimeout(calcTimer);
+  calcTimer = setTimeout(calculate, 400);
+}
+
+function calculate() {
+  const val = parseFloat(document.getElementById('freqInput').value);
+  if (!val || val <= 0) return;
+  const mhz = currentUnit === 'kHz' ? val / 1000 : val;
+  if (mhz < 0.0005 || mhz > 1766) {
+    document.getElementById('freqConvert').innerHTML = '<span style="color:#ff4466">⚠️ เกินช่วงที่ V4 รองรับ (500 kHz – 1766 MHz)</span>';
+    return;
+  }
+
+  const speedOfLight = 299.792458; // m/s * 10^6
+  const wavelength_m = speedOfLight / mhz; // เมตร
+  const quarter_cm = (wavelength_m / 4) * 100; // cm
+
+  const info = getBandInfo(mhz);
+
+  // Top chips
+  document.getElementById('resultTop').innerHTML = `
+    <div class="result-chip">
+      <div class="result-chip-label">ความถี่</div>
+      <div class="result-chip-val" style="color:var(--accent2)">${mhz} <span style="font-size:0.8rem">MHz</span></div>
+      <div class="result-chip-sub">${(mhz * 1000).toFixed(0)} kHz</div>
+    </div>
+    <div class="result-chip">
+      <div class="result-chip-label">MODE แนะนำ</div>
+      <div class="result-chip-val" style="color:${info.modeColor}">${info.mode}</div>
+      <div class="result-chip-sub">Bandwidth: ${info.bandwidth}</div>
+    </div>
+    <div class="result-chip">
+      <div class="result-chip-label">ความยาวเสา/ข้าง (¼λ)</div>
+      <div class="result-chip-val" style="color:var(--accent3)">${quarter_cm.toFixed(1)} <span style="font-size:0.8rem">cm</span></div>
+      <div class="result-chip-sub">Dipole: ${quarter_cm.toFixed(1)} cm × 2 แขน</div>
+    </div>
+    <div class="result-chip">
+      <div class="result-chip-label">ความยาวคลื่น (λ)</div>
+      <div class="result-chip-val" style="color:#c864ff">${(wavelength_m * 100).toFixed(1)} <span style="font-size:0.8rem">cm</span></div>
+      <div class="result-chip-sub">½λ = ${(wavelength_m * 50).toFixed(1)} cm</div>
+    </div>
+  `;
+
+  // Details
+  document.getElementById('resultDetails').innerHTML = `
+    <h4>// รายละเอียดความถี่</h4>
+    <div class="detail-row"><span class="detail-k">ย่านความถี่</span><span class="detail-v"><strong>${info.band}</strong></span></div>
+    <div class="detail-row"><span class="detail-k">Demodulation Mode</span><span class="detail-v"><strong>${info.mode}</strong> — ${info.modeDesc}</span></div>
+    <div class="detail-row"><span class="detail-k">Bandwidth แนะนำ</span><span class="detail-v"><strong>${info.bandwidth}</strong></span></div>
+    <div class="detail-row"><span class="detail-k">Direct Sampling</span><span class="detail-v"><strong>${info.directSampling}</strong></span></div>
+    <div class="detail-row"><span class="detail-k">ทิศทางเสาอากาศ</span><span class="detail-v"><strong>${info.antDirection}</strong></span></div>
+    <div class="detail-row"><span class="detail-k">เสาแนะนำ</span><span class="detail-v">${info.antType}</span></div>
+    <div class="detail-row"><span class="detail-k">Monopole (แขนเดียว)</span><span class="detail-v"><strong>${quarter_cm.toFixed(1)} cm</strong></span></div>
+    <div class="detail-row"><span class="detail-k">Dipole (ต่อแขน)</span><span class="detail-v"><strong>${quarter_cm.toFixed(1)} cm</strong> × 2 ข้าง = ${(quarter_cm * 2).toFixed(1)} cm รวม</span></div>
+    <div class="detail-row"><span class="detail-k">โปรแกรม Decode</span><span class="detail-v">${info.software}</span></div>
+    <div class="detail-row"><span class="detail-k">Sample Rate แนะนำ</span><span class="detail-v"><strong>${info.sampleRate}</strong></span></div>
+  `;
+
+  // Notes
+  const notesHtml = info.notes.map(n => `
+    <div class="note-item"><span class="note-icon">${n.icon}</span><span>${n.text}</span></div>
+  `).join('');
+
+  document.getElementById('resultNotes').innerHTML = `
+    <h4>// สิ่งที่ควรรู้สำหรับความถี่นี้</h4>
+    ${notesHtml}
+  `;
+
+  document.getElementById('calcResult').classList.add('show');
+  document.getElementById('calcResult').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function getBandInfo(mhz) {
+  // Default
+  let info = {
+    band: 'ไม่ทราบย่าน',
+    mode: 'NFM',
+    modeColor: '#00d4ff',
+    modeDesc: 'Narrow FM สำหรับสื่อสารทั่วไป',
+    bandwidth: '12.5 kHz',
+    directSampling: 'Disabled',
+    antDirection: 'แนวตั้ง',
+    antType: 'Dipole / Telescopic',
+    software: 'SDR++ / SDRangel',
+    sampleRate: '2.048 MHz',
+    notes: [{ icon: '📡', text: 'ความถี่นี้ไม่มีข้อมูลเฉพาะในฐานข้อมูล ใช้ NFM เป็นค่าเริ่มต้น แล้วลองปรับ Mode อื่นถ้าเสียงไม่ถูกต้อง' }]
+  };
+
+  // 0.0005 - 0.03 MHz: VLF (500 Hz - 30 kHz)
+  if (mhz >= 0.0005 && mhz < 0.03) {
+    info = { band: 'VLF — คลื่นยาวมาก (Very Low Frequency)', mode: 'AM / DSB / CW', modeColor: '#ff6b35', modeDesc: 'Amplitude Modulation หรือ Morse', bandwidth: '1–3 kHz', directSampling: 'Q Branch (ต้องเปิด)', antDirection: 'แนวนอน / Loop Antenna', antType: 'Loop Antenna ขนาดใหญ่มาก', software: 'SDR++ / SpectrumLab', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '⚠️', text: 'ต้องเปิด Direct Sampling → Q Branch เพราะต่ำกว่า 24 MHz มาก' },
+        { icon: '🌊', text: 'VLF เดินทางได้ไกลมาก ทะลุน้ำทะเลได้ ใช้สื่อสารกับเรือดำน้ำ' },
+        { icon: '⚡', text: 'ย่านนี้มีสัญญาณเวลามาตรฐาน JJY (40kHz ญี่ปุ่น), DCF77 (77.5kHz เยอรมัน)' },
+        { icon: '📡', text: 'RTL-SDR V4 รับได้ แต่ต้องใช้เสาแบบ Loop ขนาดใหญ่มากถึงจะได้สัญญาณ' },
+        { icon: '📏', text: 'ความยาวคลื่นยาวมาก เสาที่พอดีต้องยาวเป็นกิโลเมตร ใช้ Loop แทนครับ' },
+      ]
+    };
+  }
+  // 0.03 - 0.3 MHz: LF
+  else if (mhz >= 0.03 && mhz < 0.3) {
+    info = { band: 'LF — คลื่นยาว (Low Frequency)', mode: 'AM / DSB / CW', modeColor: '#ff6b35', modeDesc: 'Amplitude Modulation หรือ Morse', bandwidth: '3–6 kHz', directSampling: 'Q Branch (ต้องเปิด)', antDirection: 'แนวตั้ง / Loop', antType: 'Loop Antenna หรือ สายยาว (Long Wire)', software: 'SDR++ / SpectrumLab', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '⚠️', text: 'ต้องเปิด Direct Sampling → Q Branch เพราะต่ำกว่า 24 MHz' },
+        { icon: '🛩️', text: 'ย่านนี้มีสัญญาณ NDB (Non-Directional Beacon) นำทางเครื่องบินรุ่นเก่า' },
+        { icon: '🚢', text: 'LORAN-C ระบบนำทางเรือยุคเก่าใช้ย่านนี้ (ปัจจุบันส่วนใหญ่ปิดแล้ว)' },
+        { icon: '⏰', text: 'สัญญาณนาฬิกามาตรฐาน DCF77 ที่ 77.5 kHz ส่งจากเยอรมัน รับได้ทั่วยุโรป' },
+        { icon: '📡', text: 'V4 รับได้ แต่ต้องใช้เสา Loop หรือสายยาวมากๆ และ LNA ช่วย' },
+      ]
+    };
+  }
+  // 0.3 - 0.5 MHz: MF ต่ำ
+  else if (mhz >= 0.3 && mhz < 0.5) {
+    info = { band: 'MF — คลื่นกลางต่ำ (300–500 kHz)', mode: 'AM / DSB / CW', modeColor: '#ff6b35', modeDesc: 'Amplitude Modulation', bandwidth: '6–9 kHz', directSampling: 'Q Branch (ต้องเปิด)', antDirection: 'แนวตั้ง', antType: 'Long Wire / Telescopic ยืดเต็มที่', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '⚠️', text: 'ต้องเปิด Direct Sampling → Q Branch เพราะต่ำกว่า 24 MHz' },
+        { icon: '🛩️', text: 'NDB สนามบินส่วนใหญ่อยู่ 200–500 kHz ใช้ DSB Mode ฟัง รหัส Morse และเสียงโทน' },
+        { icon: '🚢', text: 'ย่านนี้มีสัญญาณนำทางเรือและสื่อสารทางทะเล' },
+        { icon: '📡', text: 'RTL-SDR V4 เริ่มรับที่ 500 kHz ความถี่ต่ำกว่านี้อาจรับได้บ้างแต่สัญญาณอ่อน' },
+      ]
+    };
+  }
+  // 0.5 - 1.8 MHz: LF/MF
+  else if (mhz >= 0.5 && mhz < 1.8) {
+    info = { band: 'LF/MF — คลื่นยาว/คลื่นกลาง', mode: 'AM / DSB', modeColor: '#ff6b35', modeDesc: 'Amplitude Modulation หรือ Double Sideband', bandwidth: '6–10 kHz', directSampling: 'Q Branch (ต้องเปิด)', antDirection: 'แนวตั้ง', antType: 'สายยาวมาก (Long Wire) หรือ Loop', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '⚠️', text: 'ต้องเปิด Direct Sampling → Q Branch ใน SDR++ ถึงจะรับได้ เพราะต่ำกว่า 24 MHz' },
+        { icon: '📡', text: 'V4 รับได้โดยตรงตั้งแต่ 500 kHz ไม่ต้องซื้อ Up-converter เพิ่ม' },
+        { icon: '📻', text: 'ย่านนี้ได้แก่ วิทยุ AM ปกติ (530–1700 kHz) และสัญญาณนำทาง NDB สนามบิน' },
+        { icon: '📏', text: 'เสาที่เหมาะสมต้องยาวมาก อาจใช้สาย Long Wire แทนครับ' },
+      ]
+    };
+  }
+  // 1.8 - 30 MHz: HF Short Wave
+  else if (mhz >= 1.8 && mhz < 30) {
+    const mode = mhz < 10 ? 'LSB' : 'USB';
+    info = { band: 'HF — คลื่นสั้น (Shortwave)', mode: mode, modeColor: '#c864ff', modeDesc: mhz < 10 ? 'Lower Sideband สำหรับ HF ต่ำ' : 'Upper Sideband สำหรับ HF สูง', bandwidth: '2.4–3 kHz', directSampling: 'Q Branch (ต้องเปิด)', antDirection: 'แนวนอน หรือ Long Wire', antType: 'Long Wire / Dipole แนวนอน', software: 'SDR++ / SDRangel / WSJT-X', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '⚠️', text: 'ต้องเปิด Direct Sampling → Q Branch ใน SDR++ เพราะต่ำกว่า 24 MHz' },
+        { icon: '🌏', text: 'คลื่นสั้น HF สะท้อนชั้นบรรยากาศ รับสัญญาณจากต่างประเทศได้ไกลมาก' },
+        { icon: '🎯', text: `ใช้ ${mode} Mode ต้องจูนแม่นมาก ผิดแค่ 100-200 Hz เสียงเพี้ยนทันที` },
+        { icon: '📏', text: 'เสาควรเป็น Dipole แนวนอนหรือ Long Wire ยิ่งยาวยิ่งดี' },
+        { icon: '📡', text: 'ย่านนี้มีวิทยุสมัครเล่น วิทยุสากล VOA BBC และสัญญาณดิจิทัล FT8/WSPR' },
+      ]
+    };
+  }
+  // 30 - 87 MHz: VHF Low
+  else if (mhz >= 30 && mhz < 88) {
+    info = { band: 'VHF ต่ำ (30–88 MHz)', mode: 'NFM / AM', modeColor: '#00d4ff', modeDesc: 'Narrow FM หรือ AM ขึ้นอยู่กับประเภทสัญญาณ', bandwidth: '12.5 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Yagi', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '✈️', text: 'ย่านนี้มีสัญญาณ VHF ทหารและระบบนำทางอากาศในบางประเทศ' },
+        { icon: '📻', text: 'วิทยุ FM เริ่มที่ 88 MHz ย่านนี้จึงต่ำกว่า FM ปกติ' },
+        { icon: '📡', text: 'ในไทยย่านนี้ไม่ค่อยมีสัญญาณพลเรือนมากนัก ส่วนใหญ่เป็นทหารและรัฐบาล' },
+      ]
+    };
+  }
+  // 88 - 108 MHz: FM Broadcast
+  else if (mhz >= 88 && mhz <= 108) {
+    info = { band: 'FM Broadcast — วิทยุ FM', mode: 'WFM', modeColor: '#39ff14', modeDesc: 'Wide FM สำหรับวิทยุกระจายเสียง', bandwidth: '150–200 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic ยืดเต็มที่', software: 'SDR++ / SDRangel / RF Analyzer', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '📻', text: 'วิทยุ FM ปกติ ใช้ WFM เสมอ ถ้าใช้ NFM เสียงจะบีบและแหบ' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+        { icon: '🔊', text: 'สัญญาณแรงมากในเมือง ไม่ต้องการ Gain สูง ถ้า Gain สูงเกินอาจเกิด Overload' },
+        { icon: '🎵', text: 'WFM รองรับ Stereo และ RDS (แสดงชื่อสถานีและชื่อเพลง) ได้ด้วย' },
+        { icon: '📡', text: 'วิทยุ FM ไทยส่วนใหญ่อยู่ระหว่าง 88–107 MHz' },
+      ]
+    };
+  }
+  // 108 - 118 MHz: Nav aids
+  else if (mhz >= 108 && mhz < 118) {
+    info = { band: 'VOR / ILS — ระบบนำทางการบิน', mode: 'AM / NFM', modeColor: '#ff6b35', modeDesc: 'Amplitude Modulation หรือ NFM', bandwidth: '8–10 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic', software: 'SDR++ พร้อม VOR Decoder plugin', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '✈️', text: 'ย่านนี้คือสัญญาณ VOR (VHF Omnidirectional Range) ใช้นำทางเครื่องบิน' },
+        { icon: '🛬', text: 'ILS (Instrument Landing System) ใช้ในการลงจอดอยู่ในย่านนี้ด้วย' },
+        { icon: '📡', text: 'สัญญาณ VOR ฟังได้ยินเป็นเสียงโทน + รหัส Morse บอกชื่อสถานี' },
+        { icon: '🔧', text: 'ต้องใช้ Decoder พิเศษถึงจะอ่านทิศทางจากสัญญาณ VOR ได้' },
+      ]
+    };
+  }
+  // 118 - 136 MHz: Aviation AM
+  else if (mhz >= 118 && mhz < 137) {
+    info = { band: 'VHF Aviation — วิทยุการบิน', mode: 'AM', modeColor: '#ff6b35', modeDesc: 'Amplitude Modulation มาตรฐานสากลสำหรับเครื่องบิน', bandwidth: '8–10 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '✈️', text: 'วิทยุเครื่องบินทุกลำทั่วโลกใช้ AM ไม่ใช่ FM ต้องตั้ง AM Mode เสมอ' },
+        { icon: '🛫', text: '121.5 MHz คือความถี่ฉุกเฉินสากล ทุกเครื่องบินต้องรับฟังตลอดเวลา' },
+        { icon: '🗼', text: 'หอควบคุม Approach/Departure และ Ground ใช้ความถี่แตกต่างกัน ต้องสแกนหา' },
+        { icon: '📡', text: 'สนามบินสุวรรณภูมิ Tower อยู่แถว 118–121 MHz ลองสแกนดูครับ' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+      ]
+    };
+  }
+  // 137 - 138 MHz: NOAA
+  else if (mhz >= 137 && mhz < 138.5) {
+    let noaaName = '';
+    if (Math.abs(mhz - 137.62) < 0.05) noaaName = ' (NOAA-15)';
+    else if (Math.abs(mhz - 137.9125) < 0.05) noaaName = ' (NOAA-18)';
+    else if (Math.abs(mhz - 137.1) < 0.05) noaaName = ' (NOAA-19)';
+    info = { band: `NOAA APT — ดาวเทียมอุตุนิยมวิทยา${noaaName}`, mode: 'WFM', modeColor: '#39ff14', modeDesc: 'Wide FM สำหรับสัญญาณ APT', bandwidth: '34–40 kHz', directSampling: 'Disabled', antDirection: 'แนวนอน (QFH/Turnstile ดีกว่า)', antType: 'QFH หรือ Turnstile — Dipole แนวนอนใช้ได้', software: 'WXtoImg / noaa-apt + Heavens-Above', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🛰️', text: 'NOAA-15: 137.620 MHz | NOAA-18: 137.9125 MHz | NOAA-19: 137.100 MHz' },
+        { icon: '⏱️', text: 'ดาวเทียมผ่านเหนือศีรษะครั้งละ 10–15 นาที ต้องเช็คเวลาล่วงหน้าที่ Heavens-Above' },
+        { icon: '📡', text: 'สัญญาณเป็น Circular Polarization เสา QFH/Turnstile รับได้ดีที่สุด Dipole รับได้แค่ครึ่ง' },
+        { icon: '🖼️', text: 'บันทึกเสียงเป็นไฟล์ WAV ก่อน แล้วเปิดในโปรแกรม WXtoImg หรือ noaa-apt เพื่อแปลงเป็นภาพ' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+      ]
+    };
+  }
+  // 138 - 144 MHz
+  else if (mhz >= 138 && mhz < 144) {
+    info = { band: 'VHF สื่อสาร (138–144 MHz)', mode: 'NFM', modeColor: '#00d4ff', modeDesc: 'Narrow FM มาตรฐาน VHF', bandwidth: '12.5 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🎖️', text: 'ย่านนี้มักเป็นสื่อสารทหารและหน่วยงานรัฐบาลในหลายประเทศ' },
+        { icon: '📡', text: 'อาจพบสัญญาณ Telemetry และสัญญาณดาวเทียมบางประเภท' },
+      ]
+    };
+  }
+  // 144 - 146 MHz: Amateur 2m
+  else if (mhz >= 144 && mhz < 146) {
+    info = { band: 'Amateur Radio 2m — วิทยุสมัครเล่น', mode: 'NFM / FM', modeColor: '#00d4ff', modeDesc: 'Narrow FM สำหรับ VHF สมัครเล่น', bandwidth: '12.5–25 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Yagi', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '📻', text: '144.390 MHz คือความถี่ APRS ในอเมริกาและหลายประเทศ รวมถึงไทย' },
+        { icon: '🗺️', text: 'APRS ส่งตำแหน่ง GPS และข้อความสั้น Decode ด้วย Direwolf + APRS.fi' },
+        { icon: '🎙️', text: 'นักวิทยุสมัครเล่นใช้ย่านนี้สื่อสารและผ่าน Repeater' },
+      ]
+    };
+  }
+  // 156 - 174 MHz: Marine / VHF
+  else if (mhz >= 146 && mhz < 174) {
+    let extra = '';
+    if (mhz >= 156 && mhz <= 174) extra = 'Marine VHF — ';
+    info = { band: `${extra}VHF สื่อสาร (146–174 MHz)`, mode: 'NFM', modeColor: '#00d4ff', modeDesc: 'Narrow FM มาตรฐาน VHF', bandwidth: '12.5 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '⛵', text: 'ช่วง 156–174 MHz คือ Marine VHF สื่อสารของเรือและท่าเรือ' },
+        { icon: '🆘', text: '156.8 MHz (Channel 16) คือความถี่ฉุกเฉินทางทะเลสากล' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+        { icon: '🏙️', text: 'ย่านนี้ยังมีสื่อสารตำรวจ กู้ภัย และหน่วยงานต่างๆ ด้วย ต้องสแกนหาครับ' },
+      ]
+    };
+  }
+  // 174 - 230 MHz: TV Band
+  else if (mhz >= 174 && mhz < 230) {
+    info = { band: 'VHF Band III — ทีวีดิจิทัล/สัญญาณต่างๆ', mode: 'NFM / DAB', modeColor: '#00d4ff', modeDesc: 'Narrow FM หรือ DAB+ สำหรับทีวีดิจิทัล', bandwidth: '12.5 kHz – 1.5 MHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Yagi', software: 'SDR++ / DAB decoder', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '📺', text: 'ย่านนี้ในยุโรปใช้ DAB+ (Digital Audio Broadcasting) แต่ในไทยไม่ค่อยมี' },
+        { icon: '📡', text: 'อาจพบสัญญาณ Telemetry ทหาร และสัญญาณสื่อสารเฉพาะทาง' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+      ]
+    };
+  }
+  // 230 - 300 MHz
+  else if (mhz >= 230 && mhz < 300) {
+    info = { band: 'UHF ต่ำ — สื่อสารทหาร/พิเศษ', mode: 'NFM', modeColor: '#00d4ff', modeDesc: 'Narrow FM มาตรฐาน', bandwidth: '12.5–25 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🎖️', text: 'ย่าน 225–400 MHz เป็น Military UHF ใช้สื่อสารทหารทั่วโลก' },
+        { icon: '📡', text: '~245 MHz คือย่านวิทยุสื่อสาร "แดง/ดำ" ที่ใช้กันในไทย ใช้ NFM ครับ' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+        { icon: '⚠️', text: 'บางสัญญาณในย่านนี้อาจเข้ารหัส ได้ยินแต่เสียงดิจิทัล ไม่ใช่เสียงพูด' },
+      ]
+    };
+  }
+  // 300 - 400 MHz
+  else if (mhz >= 300 && mhz < 400) {
+    info = { band: 'UHF — สื่อสารทหาร/พิเศษ', mode: 'NFM', modeColor: '#00d4ff', modeDesc: 'Narrow FM', bandwidth: '12.5–25 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Dipole / Telescopic', software: 'SDR++ / SDRangel', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🛰️', text: '400–406 MHz เป็นย่านดาวเทียมอุตุนิยมวิทยาและ Radiosonde (บอลลูนตรวจอากาศ)' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+        { icon: '📡', text: 'ย่านนี้ส่วนใหญ่เป็นสัญญาณทหารและรัฐบาล' },
+      ]
+    };
+  }
+  // 400 - 470 MHz: UHF
+  else if (mhz >= 400 && mhz < 470) {
+    info = { band: 'UHF — วิทยุสื่อสาร/Trunking', mode: 'NFM', modeColor: '#00d4ff', modeDesc: 'Narrow FM มาตรฐาน UHF', bandwidth: '12.5–25 kHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Discone / Dipole', software: 'SDR++ / SDRangel / Unitrunker', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '📟', text: 'ย่านนี้มีวิทยุสื่อสารพลเรือน ตำรวจ กู้ภัย และระบบ Trunking' },
+        { icon: '🔐', text: 'ระบบ Trunking สมัยใหม่มักเข้ารหัส (P25 Phase 2, DMR) อาจได้ยินแค่เสียงดิจิทัล' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+        { icon: '📡', text: 'แนะนำ Discone antenna เพราะครอบคลุม UHF ได้กว้างโดยไม่ต้องปรับ' },
+      ]
+    };
+  }
+  // 470 - 790 MHz: TV UHF
+  else if (mhz >= 470 && mhz < 790) {
+    info = { band: 'UHF TV Band — ทีวีดิจิทัล DVB-T', mode: 'RAW / DVB-T', modeColor: '#c864ff', modeDesc: 'ต้องใช้ DVB-T Decoder พิเศษ', bandwidth: '6–8 MHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง หรือ แนวนอน', antType: 'Yagi / Log Periodic', software: 'SDR++ + w_scan / DVB-T decoder', sampleRate: '2.048–3.2 MHz',
+      notes: [
+        { icon: '📺', text: 'ย่านนี้คือทีวีดิจิทัล DVB-T/DVB-T2 ในไทย ต้องใช้ decoder พิเศษ' },
+        { icon: '⚠️', text: 'Sample Rate ต้องสูงถึง 6–8 MHz สำหรับ DVB-T ซึ่งเกินขีดจำกัด RTL-SDR ปกติ' },
+        { icon: '📡', text: 'RTL-SDR รับ DVB-T ได้ แต่ต้องมี CPU แรงพอและใช้ software เฉพาะทาง' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+      ]
+    };
+  }
+  // 790 - 960 MHz: Cellular
+  else if (mhz >= 790 && mhz < 960) {
+    info = { band: 'UHF — โทรศัพท์มือถือ (LTE/GSM)', mode: 'RAW', modeColor: '#c864ff', modeDesc: 'ต้องใช้ Decoder พิเศษสำหรับ GSM/LTE', bandwidth: '200 kHz – 20 MHz', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Discone / Dipole', software: 'GR-GSM (Linux) / RTL_433', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '📱', text: 'ย่านนี้คือสัญญาณโทรศัพท์มือถือ GSM 900 MHz และ LTE' },
+        { icon: '⚠️', text: 'การ Decode สัญญาณโทรศัพท์อาจผิดกฎหมาย ระวังการใช้งาน' },
+        { icon: '📡', text: '868–915 MHz มีสัญญาณ IoT เช่น LoRa, Zigbee, และ RF remotes ต่างๆ' },
+        { icon: '🔧', text: '433 MHz และ 868 MHz ใช้กับ RTL_433 Decode sensor อุตุนิยมวิทยาและรีโมทได้' },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน` },
+      ]
+    };
+  }
+  // 1090 MHz: ADS-B
+  else if (mhz >= 1080 && mhz <= 1100) {
+    info = { band: 'ADS-B — ติดตามเครื่องบิน', mode: 'RAW / NFM', modeColor: '#00d4ff', modeDesc: 'ต้องใช้ ADS-B Decoder — ไม่ใช่ฟังเสียง', bandwidth: '—', directSampling: 'Disabled', antDirection: 'แนวตั้ง', antType: 'Colinear (แนะนำ) / Dipole', software: 'dump1090 / SDRangel ADS-B Plugin / Virtual Radar Server', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '✈️', text: 'เครื่องบินพาณิชย์ทุกลำส่ง ADS-B ที่ 1090 MHz ทุกๆ ไม่กี่วินาที' },
+        { icon: '📍', text: 'ข้อมูลที่ได้: หมายเลขเที่ยวบิน ตำแหน่ง GPS ความสูง ความเร็ว ทิศทาง' },
+        { icon: '📏', text: 'ความยาวเสาต้องสั้น: Monopole 6.5 cm หรือ Dipole แขนละ 6.5 cm' },
+        { icon: '🗼', text: 'ยิ่งเสาสูง ยิ่งเห็นเครื่องบินได้ไกล เพราะ 1090 MHz เดินทางเป็นเส้นตรง' },
+        { icon: '🌐', text: 'สามารถส่งข้อมูลขึ้น FlightAware หรือ FlightRadar24 เพื่อแลกรับ Premium ได้' },
+      ]
+    };
+  }
+  // 1176 MHz: GPS L5
+  else if (mhz >= 1170 && mhz <= 1185) {
+    info = { band: 'GPS L5 — ดาวเทียม GPS', mode: 'RAW', modeColor: '#c864ff', modeDesc: 'ต้องใช้ GPS Decoder พิเศษ', bandwidth: '—', directSampling: 'Disabled', antDirection: 'แนวนอน (ชี้ฟ้า)', antType: 'Patch Antenna / Helix', software: 'GNSS-SDR (Linux)', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🛰️', text: 'GPS L5 ที่ 1176 MHz เป็นสัญญาณ GPS รุ่นใหม่ความแม่นยำสูง' },
+        { icon: '⚙️', text: 'การ Decode GPS ต้องใช้ software ซับซ้อนและ CPU แรงมากครับ' },
+        { icon: '📡', text: 'ต้องใช้เสาแบบ Patch หรือ Helix ที่หันขึ้นฟ้า ไม่ใช่เสาแนวตั้งทั่วไป' },
+      ]
+    };
+  }
+  // 1227 MHz: GPS L2
+  else if (mhz >= 1220 && mhz <= 1235) {
+    info = { band: 'GPS L2 — ดาวเทียม GPS', mode: 'RAW', modeColor: '#c864ff', modeDesc: 'ต้องใช้ GPS Decoder พิเศษ', bandwidth: '—', directSampling: 'Disabled', antDirection: 'แนวนอน (ชี้ฟ้า)', antType: 'Patch Antenna', software: 'GNSS-SDR', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🛰️', text: 'GPS L2 ที่ 1227.6 MHz ใช้ในระบบ GPS ทหารและพลเรือนความแม่นยำสูง' },
+        { icon: '⚙️', text: 'ใช้ software เฉพาะทาง GNSS-SDR ที่ติดตั้งบน Linux เท่านั้น' },
+      ]
+    };
+  }
+  // 1575 MHz: GPS L1
+  else if (mhz >= 1570 && mhz <= 1580) {
+    info = { band: 'GPS L1 — ดาวเทียม GPS หลัก', mode: 'RAW', modeColor: '#c864ff', modeDesc: 'ต้องใช้ GPS Decoder พิเศษ', bandwidth: '—', directSampling: 'Disabled', antDirection: 'แนวนอน (ชี้ฟ้า)', antType: 'Patch Antenna', software: 'GNSS-SDR / GPS-SDR-SIM', sampleRate: '2.048 MHz',
+      notes: [
+        { icon: '🛰️', text: '1575.42 MHz คือความถี่ GPS L1 ที่มือถือทุกเครื่องใช้รับสัญญาณตำแหน่ง' },
+        { icon: '⚙️', text: 'RTL-SDR รับสัญญาณ GPS ได้ แต่ต้องใช้ GNSS-SDR และ CPU แรงมาก' },
+        { icon: '📡', text: 'ต้องใช้เสา Patch Antenna พิเศษที่มี LNA ในตัว ไม่ใช่เสาทั่วไป' },
+      ]
+    };
+  }
+  // > 1200 MHz general
+  else if (mhz > 1100 && mhz <= 1766) {
+    info = { band: 'Microwave / L-Band', mode: 'RAW / NFM', modeColor: '#c864ff', modeDesc: 'ขึ้นอยู่กับประเภทสัญญาณ', bandwidth: 'หลากหลาย', directSampling: 'Disabled', antDirection: 'แนวตั้ง หรือ ชี้ทิศทางสัญญาณ', antType: 'Yagi / Patch Antenna', software: 'SDR++ / SDRangel', sampleRate: '2.048–3.2 MHz',
+      notes: [
+        { icon: '📡', text: `${mhz} MHz อยู่ในย่าน L-Band ซึ่ง RTL-SDR V4 รับได้ถึง 1766 MHz` },
+        { icon: '📏', text: `ความยาวเสาที่เหมาะสม: ${(299.792458 / mhz / 4 * 100).toFixed(1)} cm ต่อแขน — เสาสั้นมาก ต้องระวัง` },
+        { icon: '🛰️', text: 'ย่านนี้มีสัญญาณดาวเทียม Iridium, Inmarsat, L-Band Weather Satellite' },
+        { icon: '⚠️', text: 'สัญญาณในย่านนี้มักอ่อนมาก ควรใช้ LNA และเสาที่เหมาะสมโดยเฉพาะ' },
+      ]
+    };
+  }
+  // out of range
+  else if (mhz > 1766) {
+    info = { band: 'เกินขีดจำกัด RTL-SDR V4', mode: 'N/A', modeColor: '#ff4466', modeDesc: 'RTL-SDR V4 รับได้สูงสุด 1766 MHz', bandwidth: 'N/A', directSampling: 'N/A', antDirection: 'N/A', antType: 'N/A', software: 'N/A', sampleRate: 'N/A',
+      notes: [
+        { icon: '❌', text: `RTL-SDR Blog V4 รับได้สูงสุด 1,766 MHz ความถี่ ${mhz} MHz เกินขีดจำกัดครับ` },
+        { icon: '💡', text: 'ถ้าต้องการรับความถี่สูงกว่านี้ต้องใช้ SDR รุ่นอื่น เช่น HackRF, ADALM-PLUTO' },
+      ]
+    };
+  }
+
+  return info;
+}
+
+// Allow Enter key + live convert display
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('freqInput');
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') calculate(); });
+  inp.addEventListener('input', updateConvert);
+  document.getElementById('btnKHz').style.cssText = 'border-color:var(--accent);color:var(--accent)';
+
+  // Active nav highlight on scroll — scroll-based, always tracks current section
+  const navLinks = document.querySelectorAll('.nav a[href^="#"]');
+  const allSections = Array.from(document.querySelectorAll('section[id]'));
+
+  function updateActiveNav() {
+    const scrollY = window.scrollY + 80; // offset for sticky nav
+    let current = allSections[0];
+
+    for (const section of allSections) {
+      if (section.offsetTop <= scrollY) {
+        current = section;
+      }
+    }
+
+    navLinks.forEach(a => a.classList.remove('active'));
+    if (current) {
+      const activeLink = document.querySelector(`.nav a[href="#${current.id}"]`);
+      if (activeLink) {
+        activeLink.classList.add('active');
+        // Scroll nav horizontally to show active link
+        activeLink.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }
+
+  window.addEventListener('scroll', updateActiveNav, { passive: true });
+  updateActiveNav(); // run once on load
+});
+</script>
+</body>
+</html>
