@@ -322,11 +322,18 @@ document.getElementById('typeGrid').addEventListener('click', e => {
     document.querySelectorAll('.ant-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentType = btn.dataset.type;
+    userOverrideType = true; // user เลือกเองแล้ว หยุด auto-recommend
+    // Clear ready-made
+    document.getElementById('readyInfo').style.display = 'none';
+    document.querySelectorAll('.rdy-btn').forEach(b => b.classList.remove('active'));
     calc();
   }
 });
 
-document.getElementById('freqInput').addEventListener('input', calc);
+document.getElementById('freqInput').addEventListener('input', () => {
+  userOverrideType = false; // frequency เปลี่ยน → auto-recommend ใหม่
+  calc();
+});
 
 // ── SVG helpers ──
 const coaxSVG = (x,y,s=1) => `<g transform="translate(${x} ${y}) scale(${s})">
@@ -411,6 +418,92 @@ const FEED = {
   }
 };
 
+
+// ── SVG helpers for ready-made antennas ──
+function svgReadyDiscone() {
+  return `<svg viewBox="0 0 300 200" style="max-height:170px">
+    <ellipse cx="150" cy="60" rx="80" ry="18" stroke="var(--accent3)" stroke-width="3" fill="rgba(57,255,20,0.08)"/>
+    <text x="150" y="44" class="ant-label" style="fill:var(--accent3)">Disc (จาน)</text>
+    ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>`<line x1="${150+Math.cos(a*Math.PI/180)*10}" y1="78" x2="${150+Math.cos(a*Math.PI/180)*80}" y2="160" stroke="var(--text-dim)" stroke-width="2"/>`).join('')}
+    <text x="150" y="180" class="ant-label">Cone (12 แขน 60°)</text>
+    <rect x="143" y="55" width="14" height="30" rx="3" class="coax-shield"/>
+    <circle cx="150" cy="78" r="4" fill="var(--accent2)"/>
+  </svg>`;
+}
+function svgReadyDiamondX30() {
+  return `<svg viewBox="0 0 200 250" style="max-height:170px">
+    <line x1="100" y1="10" x2="100" y2="230" stroke="var(--accent3)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="60" y1="80" x2="140" y2="80" stroke="var(--accent3)" stroke-width="3"/>
+    <line x1="55" y1="140" x2="145" y2="140" stroke="var(--accent3)" stroke-width="3"/>
+    <text x="100" y="245" class="ant-label">Diamond X30 — 1.3m</text>
+    <text x="100" y="25" class="ant-label" style="fill:var(--accent3)">144/430 MHz</text>
+    <rect x="93" y="195" width="14" height="35" rx="3" class="coax-shield"/>
+  </svg>`;
+}
+function svgReadyDiamondX50() {
+  return `<svg viewBox="0 0 200 270" style="max-height:170px">
+    <line x1="100" y1="10" x2="100" y2="245" stroke="var(--accent3)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="55" y1="70" x2="145" y2="70" stroke="var(--accent3)" stroke-width="3"/>
+    <line x1="50" y1="120" x2="150" y2="120" stroke="var(--accent3)" stroke-width="3"/>
+    <line x1="55" y1="170" x2="145" y2="170" stroke="var(--accent3)" stroke-width="3"/>
+    <text x="100" y="262" class="ant-label">Diamond X50 — 2.1m</text>
+    <text x="100" y="25" class="ant-label" style="fill:var(--accent3)">144/430 MHz</text>
+    <rect x="93" y="215" width="14" height="30" rx="3" class="coax-shield"/>
+  </svg>`;
+}
+function svgReadyNagoya() {
+  return `<svg viewBox="0 0 200 200" style="max-height:170px">
+    <line x1="100" y1="20" x2="100" y2="155" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
+    <line x1="80" y1="155" x2="120" y2="155" stroke="var(--text-dim)" stroke-width="3"/>
+    <line x1="90" y1="155" x2="90" y2="175" stroke="var(--text-dim)" stroke-width="3"/>
+    <line x1="110" y1="155" x2="110" y2="175" stroke="var(--text-dim)" stroke-width="3"/>
+    <rect x="93" y="155" width="14" height="20" rx="3" class="coax-shield"/>
+    <text x="100" y="195" class="ant-label">Nagoya NA-771 — 40cm</text>
+    <text x="100" y="38" class="ant-label" style="fill:var(--accent)">144/430 MHz</text>
+  </svg>`;
+}
+function svgReadyMLA30() {
+  return `<svg viewBox="0 0 220 200" style="max-height:170px">
+    <ellipse cx="110" cy="90" rx="75" ry="75" stroke="var(--accent2)" stroke-width="4" fill="none"/>
+    <rect x="97" y="155" width="26" height="18" rx="3" fill="var(--bg3)" stroke="var(--accent2)" stroke-width="2"/>
+    <text x="110" y="168" class="ant-label" style="fill:var(--accent2)">Tune</text>
+    <line x1="97" y1="173" x2="80" y2="190" class="wire-sh"/>
+    <text x="110" y="195" class="ant-label">MLA-30 Active Loop</text>
+    <text x="110" y="38" class="ant-label" style="fill:var(--accent2)">0.5–30 MHz</text>
+  </svg>`;
+}
+function svgReadyDipoleKit() {
+  return `<svg viewBox="0 0 300 160" style="max-height:170px">
+    <line x1="20" y1="75" x2="130" y2="75" stroke="var(--accent3)" stroke-width="4" stroke-linecap="round"/>
+    <line x1="170" y1="75" x2="280" y2="75" stroke="var(--accent3)" stroke-width="4" stroke-linecap="round"/>
+    <rect x="128" y="62" width="44" height="26" rx="5" fill="var(--bg3)" stroke="var(--accent2)" stroke-width="2"/>
+    <text x="150" y="78" class="ant-label" style="fill:var(--accent2)">SMA</text>
+    <line x1="150" y1="88" x2="150" y2="130" class="wire"/>
+    <text x="150" y="148" class="ant-label">RTL-SDR Dipole Kit</text>
+    <text x="150" y="38" class="ant-label">ปรับความยาวได้ FM–UHF</text>
+  </svg>`;
+}
+function svgReadyPatch() {
+  return `<svg viewBox="0 0 200 200" style="max-height:170px">
+    <rect x="40" y="40" width="120" height="120" rx="8" fill="rgba(0,212,255,0.1)" stroke="var(--accent)" stroke-width="3"/>
+    <rect x="60" y="60" width="80" height="80" rx="4" fill="rgba(0,212,255,0.15)" stroke="var(--accent)" stroke-width="2"/>
+    <circle cx="100" cy="100" r="8" fill="var(--accent)"/>
+    <line x1="100" y1="160" x2="100" y2="190" class="wire"/>
+    <text x="100" y="40" class="ant-label">ชี้ขึ้นฟ้า</text>
+    <text x="100" y="170" class="ant-label" style="fill:var(--accent)">GPS / L-Band</text>
+  </svg>`;
+}
+function svgReadyTelescopic() {
+  return `<svg viewBox="0 0 200 220" style="max-height:170px">
+    <line x1="100" y1="15" x2="100" y2="185" stroke="var(--accent)" stroke-width="6" stroke-linecap="round"/>
+    <rect x="92" y="45" width="16" height="8" rx="2" fill="var(--bg3)" stroke="var(--text-dim)" stroke-width="1"/>
+    <rect x="92" y="85" width="16" height="8" rx="2" fill="var(--bg3)" stroke="var(--text-dim)" stroke-width="1"/>
+    <rect x="92" y="125" width="16" height="8" rx="2" fill="var(--bg3)" stroke="var(--text-dim)" stroke-width="1"/>
+    <rect x="92" y="180" width="16" height="25" rx="4" class="coax-shield"/>
+    <text x="100" y="215" class="ant-label">Telescopic — ปรับได้</text>
+    <text x="100" y="30" class="ant-label">ยืดหดได้หลายย่าน</text>
+  </svg>`;
+}
 
 // ── Ready-made antenna database ──
 const READY = {
@@ -521,24 +614,85 @@ const READY = {
 document.getElementById('readyGrid').addEventListener('click', e => {
   const btn = e.target.closest('.rdy-btn');
   if (!btn) return;
+  // Deselect DIY buttons
+  document.querySelectorAll('.ant-btn').forEach(b => b.classList.remove('active'));
+  // Toggle ready button
+  const wasActive = btn.classList.contains('active');
   document.querySelectorAll('.rdy-btn').forEach(b => b.classList.remove('active'));
+  const box = document.getElementById('readyInfo');
+  if (wasActive) {
+    box.style.display = 'none';
+    // Restore last DIY type
+    document.querySelectorAll('.ant-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.type === currentType);
+    });
+    return;
+  }
   btn.classList.add('active');
   const d = READY[btn.dataset.type];
-  const box = document.getElementById('readyInfo');
   if (d) {
+    // Hide DIY result area content but keep area visible for ready info
+    document.getElementById('resultArea').classList.add('show');
     box.style.display = 'block';
-    box.innerHTML = `<div class="rdy-info-title">📡 ${d.name}</div>
+    const svgFns = {
+      'r-discone': svgReadyDiscone,
+      'r-diamond-x30': svgReadyDiamondX30,
+      'r-diamond-x50': svgReadyDiamondX50,
+      'r-nagoya': svgReadyNagoya,
+      'r-mla30': svgReadyMLA30,
+      'r-rtlsdr-dipole': svgReadyDipoleKit,
+      'r-patch': svgReadyPatch,
+      'r-telescopic': svgReadyTelescopic,
+    };
+    const svgHtml = svgFns[btn.dataset.type] ? svgFns[btn.dataset.type]() : '';
+    box.innerHTML = `
+      <div class="rdy-info-title">📡 ${d.name}</div>
       <p style="font-size:0.85rem;color:var(--text-dim);margin-bottom:0.75rem">${d.desc}</p>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:center">${svgHtml}</div>
       ${d.rows.map(r=>`<div class="rdy-row"><span class="rdy-k">${r.k}</span><span class="rdy-v">${r.v}</span></div>`).join('')}`;
+    // Scroll to info
+    box.scrollIntoView({behavior:'smooth', block:'nearest'});
   }
 });
 
 
 // ── Main calculation ──
+function getRecommendedAntenna(mhz) {
+  if (mhz < 0.5) return null;
+  if (mhz < 30) return 'longwire';        // HF — Long Wire ง่ายที่สุด
+  if (mhz < 88) return 'dipole';          // VHF ต่ำ
+  if (mhz <= 108) return 'dipole';        // FM Broadcast
+  if (mhz <= 136) return 'dipole';        // วิทยุเครื่องบิน
+  if (mhz <= 138.5) return 'vdipole';     // NOAA/Meteor ดาวเทียม
+  if (mhz <= 174) return 'jpole';         // VHF สื่อสาร
+  if (mhz <= 300) return 'jpole';         // VHF/UHF
+  if (mhz <= 500) return 'jpole';         // UHF
+  if (mhz <= 960) return 'collinear';     // UHF สูง/ISM
+  if (mhz <= 1100) return 'collinear';    // ADS-B 1090
+  return 'collinear';                     // L-Band+
+}
+
+let userOverrideType = false; // flag ว่า user เลือกเองหรือยัง
+
 function calc() {
   const mhz = getMHz();
   const resultArea = document.getElementById('resultArea');
   if (!mhz) { resultArea.classList.remove('show'); return; }
+
+  // Auto-recommend antenna type (only if user hasn't manually overridden)
+  if (!userOverrideType) {
+    const rec = getRecommendedAntenna(mhz);
+    if (rec && rec !== currentType) {
+      currentType = rec;
+      document.querySelectorAll('.ant-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.type === rec);
+      });
+    }
+  }
+
+  // Clear ready-made info when DIY is active
+  document.getElementById('readyInfo').style.display = 'none';
+  document.querySelectorAll('.rdy-btn').forEach(b => b.classList.remove('active'));
 
   const lambda_m = 300 / mhz; // meters, in free space
   const lambda_vf_m = lambda_m * currentVF;
@@ -786,7 +940,9 @@ function calc() {
   document.getElementById('diagContainer').innerHTML = diagSVG;
   document.getElementById('summaryTitle').innerHTML = sTitle;
   document.getElementById('summaryTable').innerHTML = summaryData.map(r=>`<tr><td class="key">${r.k}</td><td class="val">${typeof r.v==='number'?r.v.toFixed(2):r.v}<span class="unit">${r.u}</span></td></tr>`).join('');
-  document.getElementById('infoBadges').innerHTML = badges.map(b=>`<span class="badge ${b.cls}">${b.txt}</span>`).join('');
+  // Add recommendation notice if auto-selected
+  const recBadge = userOverrideType ? '' : `<span class="badge" style="background:rgba(255,200,0,0.1);color:var(--yellow);border:1px solid rgba(255,200,0,0.3)">⭐ แนะนำสำหรับ ${fmt(mhz)} MHz</span>`;
+  document.getElementById('infoBadges').innerHTML = recBadge + badges.map(b=>`<span class="badge ${b.cls}">${b.txt}</span>`).join('');
 
   // Feed box
   const fd = FEED[feedKey];
