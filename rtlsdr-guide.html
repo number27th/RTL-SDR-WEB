@@ -1487,7 +1487,7 @@
           <tbody>
             <tr><td><strong>Turnstile</strong></td><td>NOAA 137 MHz</td><td>ทำง่ายกว่า QFH รับ Circular ได้ดีพอสมควร</td><td>Gain ต่ำกว่า QFH</td><td>⭐⭐ ปานกลาง</td><td>ถูก</td></tr>
             <tr><td><strong>QFH (Quadrifilar Helix)</strong></td><td>NOAA 137 MHz</td><td>รับ Circular Polarization ได้เต็มที่ ภาพคมชัดสุด</td><td>ทำยากต้องแม่นยำมาก</td><td>⭐⭐⭐ ยากกว่า</td><td>กลาง</td></tr>
-            <tr><td><strong>Helical</strong></td><td>ดาวเทียมความถี่สูง</td><td>Gain สูงมาก รับ Circular Polarization</td><td>ต้องหันตามดาวเทียม ทำยาก</td><td>⭐⭐⭐ ยากกว่า</td><td>กลาง</td></tr>
+            <tr><td><strong>Helical</strong></td><td>ดาวเทียมความถึสูง</td><td>Gain สูงมาก รับ Circular Polarization</td><td>ต้องหันตามดาวเทียม ทำยาก</td><td>⭐⭐⭐ ยากกว่า</td><td>กลาง</td></tr>
           </tbody>
         </table>
       </div>
@@ -1634,6 +1634,57 @@
         <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">SDR++ / SDRangel</span></div>
         <div class="decode-row"><span class="k">ไม่ต้อง Decode</span><span class="v">ฟังเสียงตรงๆ</span></div>
       </div>
+
+      <div class="decode-card diff-mid">
+        <div class="decode-name">DRM วิทยุดิจิทัล HF</div>
+        <div class="decode-sub">Digital Radio Mondiale — วิทยุดิจิทัลความถี่คลื่นสั้น</div>
+        <div class="decode-row"><span class="k">ความถี่</span><span class="v mono">~1–26 MHz (HF ทุกย่าน)</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-dsb">DSB/AM</span></span></div>
+        <div class="decode-row"><span class="k">Bandwidth</span><span class="v mono">10 kHz</span></div>
+        <div class="decode-row"><span class="k">Direct Sampling</span><span class="v">Q Branch (ต้องเปิด)</span></div>
+        <div class="decode-row"><span class="k">เสาอากาศ</span><span class="v">Long Wire / Magnetic Loop</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">Dream Software / SDRangel</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">เสียงดิจิทัลคุณภาพสูง ข้อความ</span></div>
+      </div>
+
+      <div class="decode-card diff-mid">
+        <div class="decode-name">FT8 / WSPR</div>
+        <div class="decode-sub">Digital Mode วิทยุสมัครเล่น HF ระยะไกลมาก</div>
+        <div class="decode-row"><span class="k">ความถี่ FT8</span><span class="v mono">7.074 / 14.074 / 28.074 MHz</span></div>
+        <div class="decode-row"><span class="k">ความถี่ WSPR</span><span class="v mono">7.0386 / 14.0956 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-usb">USB</span></span></div>
+        <div class="decode-row"><span class="k">Bandwidth</span><span class="v mono">~3 kHz</span></div>
+        <div class="decode-row"><span class="k">Direct Sampling</span><span class="v">Q Branch (ต้องเปิด)</span></div>
+        <div class="decode-row"><span class="k">เสาอากาศ</span><span class="v">Dipole แนวนอน / Long Wire</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">WSJT-X</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">รับสัญญาณจากทั่วโลกระยะไกลมาก</span></div>
+      </div>
+
+      <div class="decode-card diff-easy">
+        <div class="decode-name">Weather Sensors (rtl_433)</div>
+        <div class="decode-sub">Decode สัญญาณ IoT/Sensor อุตุนิยมวิทยา รีโมท และอื่นๆ</div>
+        <div class="decode-row"><span class="k">ความถี่หลัก</span><span class="v mono">433.92 MHz</span></div>
+        <div class="decode-row"><span class="k">ความถี่รอง</span><span class="v mono">868 MHz / 915 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-nfm">NFM / OOK / FSK</span></span></div>
+        <div class="decode-row"><span class="k">ความยาวเสา</span><span class="v mono">17 cm/ข้าง (433 MHz)</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">rtl_433 (Windows/Linux/Android)</span></div>
+        <div class="decode-row"><span class="k">รองรับอุปกรณ์</span><span class="v">1,000+ รุ่น — เครื่องวัดอุณหภูมิ, รีโมทประตูรถ, เซ็นเซอร์ฝน, มิเตอร์ไฟฟ้า, เครื่องวัดความดัน</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">อุณหภูมิ ความชื้น ความดัน สัญญาณ ON/OFF</span></div>
+      </div>
+
+      <div class="decode-card diff-mid">
+        <div class="decode-name">POCSAG (Pager)</div>
+        <div class="decode-sub">ระบบเพจเจอร์ดิจิทัล — ยังใช้งานในโรงพยาบาลและหน่วยงานบางแห่ง</div>
+        <div class="decode-row"><span class="k">ความถี่ในไทย</span><span class="v mono">VHF/UHF — ต้องสแกนหา</span></div>
+        <div class="decode-row"><span class="k">ความถี่สากลทั่วไป</span><span class="v mono">152–167 MHz / 450–470 MHz</span></div>
+        <div class="decode-row"><span class="k">Mode</span><span class="v"><span class="tag tag-nfm">NFM</span></span></div>
+        <div class="decode-row"><span class="k">Bandwidth</span><span class="v mono">12.5–25 kHz</span></div>
+        <div class="decode-row"><span class="k">Baud Rate</span><span class="v mono">512 / 1200 / 2400 bps</span></div>
+        <div class="decode-row"><span class="k">โปรแกรม</span><span class="v">PDW (Windows) / multimon-ng (Linux) / SDRangel</span></div>
+        <div class="decode-row"><span class="k">ข้อมูลที่ได้</span><span class="v">ข้อความ Pager ตัวเลขและตัวอักษร</span></div>
+        <div class="decode-row"><span class="k">หมายเหตุ</span><span class="v">ส่วนใหญ่ไม่เข้ารหัส อ่านได้ทันที ใช้กับนักดับเพลิงและโรงพยาบาลบางแห่งในไทย</span></div>
+      </div>
+
 
     </div>
   </section>
