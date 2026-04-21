@@ -209,7 +209,7 @@
       </div>
 
       <!-- Antenna type -->
-      <label class="field-label">3. เลือกประเภทเสาอากาศ</label>
+      <label class="field-label">3. เลือกประเภทเสาอากาศ <span style="font-size:0.65rem;color:var(--text-dim);font-family:'Share Tech Mono',monospace">(กรอกความถี่ใหม่เพื่อรับคำแนะนำอีกครั้ง)</span></label>
       <div class="type-grid" id="typeGrid">
         <button class="ant-btn" data-type="dipole">Dipole<span class="ant-tag">½λ | 73Ω</span><span class="diff">⭐ ง่ายมาก</span></button>
         <button class="ant-btn" data-type="monopole">Monopole<span class="ant-tag">¼λ | 36Ω</span><span class="diff">⭐ ง่ายมาก</span></button>
@@ -292,6 +292,7 @@ function setUnit(u) {
   document.getElementById('unitDisplay').textContent = u;
   document.getElementById('btnMHz').classList.toggle('active', u === 'MHz');
   document.getElementById('btnKHz').classList.toggle('active', u === 'kHz');
+  userOverrideType = false; // unit เปลี่ยน → แนะนำใหม่
   calc();
 }
 
@@ -301,6 +302,7 @@ function p(mhz) {
   document.getElementById('btnMHz').classList.add('active');
   document.getElementById('btnKHz').classList.remove('active');
   document.getElementById('freqInput').value = mhz;
+  userOverrideType = false; // preset กด → แนะนำใหม่
   calc();
 }
 
