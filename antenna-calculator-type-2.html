@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Antenna Calculator — RTL-SDR</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+Thai:wght@300;400;500;700&display=swap');
+
+  :root {
+    --bg: #0b0f1a;
+    --bg2: #111827;
+    --bg3: #1a2235;
+    --border: #1e3a5f;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff7e;
+    --text: #c8d8e8;
+    --text-dim: #5a7a9a;
+    --text-bright: #eaf4ff;
+    --glow: rgba(0,212,255,0.15);
+    --mono: 'Space Mono', monospace;
+    --thai: 'Noto Sans Thai', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--thai);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 92% 10%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(2px 2px at 22% 45%, rgba(0,212,255,0.2) 0%, transparent 100%),
+      radial-gradient(2px 2px at 75% 38%, rgba(0,212,255,0.15) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 1px;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .header-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.8;
+  }
+
+  h1 {
+    font-family: var(--mono);
+    font-size: clamp(22px, 5vw, 36px);
+    font-weight: 700;
+    color: var(--text-bright);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    font-family: var(--mono);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+  }
+
+  .card-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::before {
+    content: '';
+    width: 16px; height: 1px;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+  }
+
+  /* Input row */
+  .input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .freq-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  input[type="number"] {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 60px 14px 18px;
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--text-bright);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input[type="number"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,212,255,0.1), inset 0 0 20px rgba(0,212,255,0.03);
+  }
+
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .input-unit {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+
+  /* Velocity Factor */
+  .vf-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .vf-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+
+  .vf-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 11px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .vf-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .vf-btn.active { background: rgba(0,212,255,0.12); border-color: var(--accent); color: var(--accent); }
+
+  /* Preset chips */
+  .presets {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .preset-chip {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 11px;
+    font-family: var(--mono);
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .preset-chip:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.06); }
+
+  /* Antenna type selector */
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .type-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .type-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  .type-btn.active {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    box-shadow: 0 0 16px rgba(0,212,255,0.12);
+  }
+
+  .type-btn.active::after {
+    content: '✓';
+    position: absolute;
+    top: 6px; right: 8px;
+    font-size: 10px;
+    color: var(--accent);
+  }
+
+  .type-icon { font-size: 22px; margin-bottom: 6px; }
+  .type-name { font-family: var(--mono); font-size: 11px; color: var(--text-bright); }
+  .type-sub { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .result-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+  }
+
+  .result-box.primary {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+
+  .result-box.primary::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 11px;
+    background: var(--accent);
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  .result-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .result-value {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-bright);
+    line-height: 1;
+  }
+
+  .result-box.primary .result-value { color: var(--accent); }
+
+  .result-unit {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+
+  /* Info band */
+  .info-band {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .info-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .info-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 6px var(--accent3);
+  }
+
+  .info-pill.warn .dot { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+
+  /* ═══════════ DIAGRAM AREA ═══════════ */
+  .diagram-area {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 20px;
+  }
+
+  .diagram-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.2);
+  }
+
+  .diagram-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .diagram-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+
+  #diagramCanvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: transparent;
+  }
+
+  /* Build guide */
+  .build-steps {
+    counter-reset: step;
+  }
+
+  .build-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(30,58,95,0.5);
+  }
+
+  .build-step:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+  .step-text strong { color: var(--text-bright); }
+  .step-text .hi { color: var(--accent); font-family: var(--mono); font-size: 12px; }
+  .step-text .warn { color: var(--accent2); }
+
+  /* Badges */
+  .badges-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid;
+  }
+
+  .badge-easy { color: var(--accent3); border-color: rgba(57,255,126,0.3); background: rgba(57,255,126,0.06); }
+  .badge-med { color: #ffd166; border-color: rgba(255,209,102,0.3); background: rgba(255,209,102,0.06); }
+  .badge-hard { color: var(--accent2); border-color: rgba(255,107,53,0.3); background: rgba(255,107,53,0.06); }
+  .badge-imp { color: var(--accent); border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.06); }
+  .badge-dark { color: var(--text-dim); border-color: var(--border); }
+
+  /* Impedance bar */
+  .impedance-bar {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: var(--bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .imp-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .imp-track {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    position: relative;
+    overflow: visible;
+  }
+
+  .imp-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent3), var(--accent));
+    transition: width 0.4s ease;
+    position: relative;
+  }
+
+  .imp-marker {
+    position: absolute;
+    top: -3px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg2);
+    box-shadow: 0 0 8px var(--accent);
+    transform: translateX(-50%);
+    transition: left 0.4s ease;
+  }
+
+  .imp-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--text-dim);
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+
+  /* Scan animation line */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(600%); opacity: 0; }
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    pointer-events: none;
+    animation: scanline 3s ease-in-out infinite;
+    opacity: 0;
+  }
+
+  /* Glow pulse on active */
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0); }
+    50% { box-shadow: 0 0 20px 4px rgba(0,212,255,0.15); }
+  }
+
+  .diagram-area.active {
+    animation: glowPulse 2s ease-in-out 1;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  @media (max-width: 500px) {
+    .type-grid { grid-template-columns: repeat(3, 1fr); }
+    .results-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header>
+    <div class="header-tag">RTL-SDR TOOLKIT // OFFLINE</div>
+    <h1>ANTENNA <span>CALCULATOR</span></h1>
+    <div class="subtitle">คำนวณขนาดเสาอากาศ + Diagram สำหรับ RTL-SDR Blog V4</div>
+  </header>
+
+  <!-- STEP 1: Frequency -->
+  <div class="card">
+    <div class="card-label">01 — ความถี่เป้าหมาย</div>
+
+    <div class="input-row">
+      <div class="freq-input-wrap">
+        <input type="number" id="freqInput" placeholder="144.390" min="0.5" max="1766" step="0.001">
+        <span class="input-unit">MHz</span>
+      </div>
+    </div>
+
+    <div class="vf-row">
+      <span class="vf-label">Velocity Factor (ค่าความเร็วคลื่นในสาย):</span>
+      <button class="vf-btn active" data-vf="0.95">0.95 ลวดทองแดง</button>
+      <button class="vf-btn" data-vf="0.82">0.82 สายโคแอก RG58</button>
+      <button class="vf-btn" data-vf="0.66">0.66 สายโคแอก RG8</button>
+      <button class="vf-btn" data-vf="1.00">1.00 อากาศ</button>
+    </div>
+
+    <div class="presets">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--text-dim);align-self:center;">Presets:</span>
+      <button class="preset-chip" data-f="98">FM 98</button>
+      <button class="preset-chip" data-f="121.5">Emergency 121.5</button>
+      <button class="preset-chip" data-f="137.9">Meteor-M2 137.9</button>
+      <button class="preset-chip" data-f="144.390">APRS 144.39</button>
+      <button class="preset-chip" data-f="156.8">Marine Ch.16</button>
+      <button class="preset-chip" data-f="162">VHF 162</button>
+      <button class="preset-chip" data-f="245">แดง/ดำ 245</button>
+      <button class="preset-chip" data-f="433.92">ISM 433</button>
+      <button class="preset-chip" data-f="1090">ADS-B 1090</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Antenna Type -->
+  <div class="card">
+    <div class="card-label">02 — ประเภทเสาอากาศ</div>
+    <div class="type-grid" id="typeGrid">
+      <div class="type-btn active" data-type="dipole">
+        <div class="type-icon">📡</div>
+        <div class="type-name">Dipole</div>
+        <div class="type-sub">1/4λ × 2</div>
+      </div>
+      <div class="type-btn" data-type="monopole">
+        <div class="type-icon">🗼</div>
+        <div class="type-name">Monopole</div>
+        <div class="type-sub">1/4λ Ground</div>
+      </div>
+      <div class="type-btn" data-type="invertedv">
+        <div class="type-icon">⛺</div>
+        <div class="type-name">Inverted-V</div>
+        <div class="type-sub">Dipole เอียง</div>
+      </div>
+      <div class="type-btn" data-type="jpole">
+        <div class="type-icon">🎣</div>
+        <div class="type-name">J-Pole</div>
+        <div class="type-sub">3/4λ + 1/4λ</div>
+      </div>
+      <div class="type-btn" data-type="yagi">
+        <div class="type-icon">📶</div>
+        <div class="type-name">Yagi 3-el</div>
+        <div class="type-sub">Directional</div>
+      </div>
+      <div class="type-btn" data-type="qfh">
+        <div class="type-icon">🛰️</div>
+        <div class="type-name">QFH</div>
+        <div class="type-sub">Circular Pol.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsSection" style="display:none">
+
+    <!-- Measurements -->
+    <div class="card">
+      <div class="card-label">03 — ขนาดที่คำนวณได้</div>
+      <div class="results-grid" id="resultsGrid"></div>
+      <div class="info-band" id="infoBand"></div>
+      <div class="impedance-bar">
+        <div class="imp-label">IMPEDANCE (อิมพีแดนซ์ / ความต้านทานสัญญาณ)</div>
+        <div class="imp-track">
+          <div class="imp-fill" id="impFill"></div>
+          <div class="imp-marker" id="impMarker"></div>
+        </div>
+        <div class="imp-labels"><span>0Ω</span><span>25Ω</span><span>50Ω</span><span>75Ω</span><span>100Ω+</span></div>
+      </div>
+    </div>
+
+    <!-- Diagram -->
+    <div class="diagram-area" id="diagramArea">
+      <div class="scan-line"></div>
+      <div class="diagram-header">
+        <span class="diagram-title" id="diagramTitle">ANTENNA DIAGRAM</span>
+        <span class="diagram-badge" id="diagramBadge">—</span>
+      </div>
+      <canvas id="diagramCanvas"></canvas>
+    </div>
+
+    <!-- Build Guide -->
+    <div class="card">
+      <div class="card-label">04 — วิธีสร้าง &amp; ข้อแนะนำ</div>
+      <div class="build-steps" id="buildSteps"></div>
+      <div class="badges-row" id="badgesRow"></div>
+    </div>
+
+  </div>
+
+  <!-- Empty state when no input -->
+  <div class="empty-state" id="emptyState">
+    <div class="empty-icon">📡</div>
+    <div>กรอกความถี่ด้านบนเพื่อเริ่มคำนวณ</div>
+  </div>
+
+  <footer>RTL-SDR BLOG V4 // OFFLINE REFERENCE // R828D + TCXO ±1PPM</footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════
+let freq = 0;        // MHz
+let vf = 0.95;       // velocity factor
+let antennaType = 'dipole';
+
+// ═══════════════════════════════════════════
+//  Speed of light
+// ═══════════════════════════════════════════
+const C = 299.792458; // m/s × 10^6
+
+function lambda(mhz, velFactor = vf) {
+  return (C / mhz) * velFactor;
+}
+
+// ═══════════════════════════════════════════
+//  Antenna definitions
+// ═══════════════════════════════════════════
+const ANTENNAS = {
+  dipole: {
+    name: 'Half-Wave Dipole',
+    icon: '📡',
+    impedance: 73,
+    calc(f) {
+      const arm = lambda(f) / 4 * 100; // cm per arm
+      const total = arm * 2;
+      return {
+        main: arm,
+        total,
+        arm,
+        label: 'ความยาวต่อแขน',
+        label2: 'ความยาวรวม'
+      };
+    },
+    steps(f, res) {
+      return [
+        { n: 1, t: `ตัดสายหรือลวดแต่ละข้าง <strong>ยาว <span class="hi">${fmt(res.arm)} cm</span></strong> (รวมทั้งหมด 2 เส้น)` },
+        { n: 2, t: `ต่อปลายทั้งสองข้างเข้ากับหัว SMA ของ RTL-SDR โดยแต่ละข้างไปที่ <strong>center pin</strong> และ <strong>ground</strong> ตามลำดับ` },
+        { n: 3, t: `ตั้งเสาให้ทั้งสองแขน <strong>อยู่ในแนวเดียวกัน แนวตั้ง</strong> เพื่อรับสัญญาณ VHF/UHF รอบทิศ` },
+        { n: 4, t: `สำหรับ Meteor-M2 (137 MHz) <span class="warn">หมุนเสาให้อยู่แนวนอนและชี้ขึ้นฟ้า</span> (V-Dipole) จะรับสัญญาณดาวเทียมได้ดีกว่า` }
+      ];
+    },
+    badges: ['badge-easy ✦ ทำง่ายมาก', 'badge-imp ⚡ 73Ω ≈ 50Ω match ดี', 'badge-dark รับรอบทิศ Omni'],
+    note: ''
+  },
+
+  monopole: {
+    name: 'Quarter-Wave Monopole',
+    icon: '🗼',
+    impedance: 36,
+    calc(f) {
+      const arm = lambda(f) / 4 * 100;
+      const radial = arm;
+      return { main: arm, arm, radial, total: arm + radial, label: 'ความยาวเสา (vertical)' };
+    },
+    steps(f, res) {
+      return [
+        { n: 1, t: `ตัดเสาตั้งสูง <span class="hi">${fmt(res.arm)} cm</span> เสียบที่ center pin ของ SMA` },
+        { n: 2, t: `ทำ Ground Radial <strong>3–4 เส้น</strong> ยาวเส้นละ <span class="hi">${fmt(res.radial)} cm</span> กางออกเป็นมุม 45° ลงดิน ต่อที่ ground ของ SMA` },
+        { n: 3, t: `ตั้งเสาให้ <strong>ตั้งตรง แนวตั้ง</strong> เสมอ — radial ช่วยทำ ground plane เสมือน` },
+        { n: 4, t: `อิมพีแดนซ์ <span class="hi">~36Ω</span> ถ้าต้องการ match กับสาย 50Ω ลองเอียง radial ลงมาเพิ่มอีกนิด` }
+      ];
+    },
+    badges: ['badge-easy ✦ ทำง่าย', 'badge-med 📐 36Ω ต้อง match เล็กน้อย', 'badge-dark ต้องใช้ ground plane'],
+    note: ''
+  },
+
+  invertedv: {
+    name: 'Inverted-V Dipole',
+    icon: '⛺',
+    impedance: 50,
+    calc(f) {
+      const arm = lambda(f) / 4 * 100 * 0.96;
+      return { main: arm, arm, total: arm * 2, label: 'ความยาวต่อแขน (เอียง ~45°)' };
+    },
+    steps(f, res) {
+      return [
+        { n: 1, t: `ตัดสายแต่ละแขน <span class="hi">${fmt(res.arm)} cm</span> (สั้นกว่า Dipole ตรง 4% เพราะเอียง)` },
+        { n: 2, t: `แขวนจุดกึ่งกลาง (feed point) ให้สูงที่สุดเท่าที่ทำได้ เช่น ราวบ้าน เสาไม้` },
+        { n: 3, t: `กางแขนทั้งสองออกเป็น <strong>มุม 90–120°</strong> แต่ละข้างทำมุม 45° กับแนวตั้ง` },
+        { n: 4, t: `อิมพีแดนซ์ตกอยู่ที่ <span class="hi">~50Ω</span> — match สายโคแอก RG58 ได้โดยตรง ไม่ต้องทำ balun` }
+      ];
+    },
+    badges: ['badge-easy ✦ ทำง่าย', 'badge-imp ⚡ ~50Ω match สมบูรณ์', 'badge-dark เหมาะหน้าบ้าน/ระเบียง'],
+    note: ''
+  },
+
+  jpole: {
+    name: 'J-Pole',
+    icon: '🎣',
+    impedance: 50,
+    calc(f) {
+      const w = lambda(f) * 100;
+      const long = w * 3 / 4;
+      const short = w / 4;
+      const gap = 2.5; // cm typical
+      return { main: long, long, short, gap, total: long + gap, label: 'ความยาวท่อนยาว (3/4λ)' };
+    },
+    steps(f, res) {
+      return [
+        { n: 1, t: `ท่อน <strong>ยาว</strong> (radiator): <span class="hi">${fmt(res.long)} cm</span>` },
+        { n: 2, t: `ท่อน <strong>สั้น</strong> (matching stub, 1/4λ): <span class="hi">${fmt(res.short)} cm</span>` },
+        { n: 3, t: `ช่องว่างระหว่างท่อน (gap): <span class="hi">~${res.gap} cm</span> (ปรับเพื่อ tune)` },
+        { n: 4, t: `ต่อสายโคแอกที่ <strong>ด้านล่างของท่อนสั้น</strong> ขยับขึ้นลงเล็กน้อยเพื่อ match <span class="warn">ไม่มี ground plane ต้องการ</span>` }
+      ];
+    },
+    badges: ['badge-med ✦ ปานกลาง', 'badge-imp ⚡ 50Ω match ดี', 'badge-dark ไม่ต้อง Ground Plane', 'badge-dark Gain สูงกว่า Dipole ~2 dBd'],
+    note: ''
+  },
+
+  yagi: {
+    name: 'Yagi 3-Element',
+    icon: '📶',
+    impedance: 50,
+    calc(f) {
+      const w = lambda(f, 1.0) * 100; // free-space for Yagi
+      const reflector = w * 0.508;
+      const driven = w * 0.473;
+      const director = w * 0.440;
+      const spacing_rd = w * 0.20;
+      const spacing_dd = w * 0.25;
+      return { main: driven, reflector, driven, director, spacing_rd, spacing_dd, label: 'Driven Element' };
+    },
+    steps(f, res) {
+      return [
+        { n: 1, t: `<strong>Reflector</strong> (หลัง): <span class="hi">${fmt(res.reflector)} cm</span>` },
+        { n: 2, t: `<strong>Driven Element</strong> (กลาง, ต่อสายโคแอก): <span class="hi">${fmt(res.driven)} cm</span>` },
+        { n: 3, t: `<strong>Director</strong> (หน้า): <span class="hi">${fmt(res.director)} cm</span>` },
+        { n: 4, t: `ระยะห่าง Reflector→Driven: <span class="hi">${fmt(res.spacing_rd)} cm</span> | Driven→Director: <span class="hi">${fmt(res.spacing_dd)} cm</span>` }
+      ];
+    },
+    badges: ['badge-med ✦ ปานกลาง', 'badge-imp Gain ~7 dBd', 'badge-hard ⚠️ ต้องชี้หาแหล่งสัญญาณ', 'badge-dark เหมาะดาวเทียม/ADS-B'],
+    note: ''
+  },
+
+  qfh: {
+    name: 'QFH — Quadrifilar Helix',
+    icon: '🛰️',
+    impedance: 50,
+    calc(f) {
+      const w = lambda(f) * 100;
+      const dia = w * 0.1295;
+      const height = w * 0.4444;
+      const loop_big = w * 0.5286;
+      const loop_small = w * 0.4687;
+      return { main: dia, dia, height, loop_big, loop_small, label: 'เส้นผ่านศูนย์กลาง (diameter)' };
+    },
+    steps(f, res) {
+      return [
+        { n: 1, t: `เส้นผ่านศูนย์กลางโครง: <span class="hi">${fmt(res.dia)} cm</span>` },
+        { n: 2, t: `ความสูงโครง: <span class="hi">${fmt(res.height)} cm</span>` },
+        { n: 3, t: `Loop ใหญ่ (ต่อเฟสปกติ): <span class="hi">${fmt(res.loop_big)} cm</span> × 2 เส้น` },
+        { n: 4, t: `Loop เล็ก (ต่อเฟส 90°): <span class="hi">${fmt(res.loop_small)} cm</span> × 2 เส้น` },
+        { n: 5, t: `<span class="warn">Circular Polarization</span> — เหมาะที่สุดสำหรับ Meteor-M2-3/4 และดาวเทียม LEO ทุกชนิด ภาพคมชัดกว่า Dipole แบนธรรมดา` }
+      ];
+    },
+    badges: ['badge-hard ✦ ยากที่สุด', 'badge-imp Circular Polarization', 'badge-imp 🛰️ ดีที่สุดสำหรับดาวเทียม', 'badge-dark ~50Ω match ดี'],
+    note: ''
+  }
+};
+
+// ═══════════════════════════════════════════
+//  Formatters
+// ═══════════════════════════════════════════
+function fmt(cm) {
+  if (cm >= 100) return (cm / 100).toFixed(3) + ' m';
+  return cm.toFixed(1) + ' cm';
+}
+
+function fmtN(cm) {
+  if (cm >= 100) return (cm / 100).toFixed(3);
+  return cm.toFixed(1);
+}
+
+function fmtU(cm) {
+  return cm >= 100 ? 'm' : 'cm';
+}
+
+// ═══════════════════════════════════════════
+//  Band detection
+// ═══════════════════════════════════════════
+function detectBand(f) {
+  if (f < 0.5) return null;
+  if (f < 30) return { name: 'HF / คลื่นสั้น', warn: true, note: 'ต้องเปิด Direct Sampling Q Branch' };
+  if (f < 88) return { name: 'VHF ต่ำ', warn: false, note: '' };
+  if (f <= 108) return { name: 'FM Broadcast', warn: false, note: 'WFM 200 kHz' };
+  if (f <= 136) return { name: 'Aviation AM', warn: false, note: 'Mode: AM, BW: 8–10 kHz' };
+  if (f <= 138) return { name: 'Satellite 137 MHz', warn: false, note: 'Meteor-M2-3: 137.9 MHz ✅' };
+  if (f <= 174) return { name: 'VHF สื่อสาร', warn: false, note: 'Mode: NFM, BW: 12.5 kHz' };
+  if (f <= 300) return { name: 'VHF/UHF สื่อสาร', warn: false, note: 'NFM' };
+  if (f <= 470) return { name: 'UHF สื่อสาร', warn: false, note: 'NFM / Trunking' };
+  if (f <= 1100) return { name: 'UHF / ADS-B', warn: false, note: f > 1080 ? 'ADS-B: เสา 6.5 cm/ข้าง' : '' };
+  return { name: 'L-Band', warn: false, note: 'ต้องใช้ LNA + จานรับสัญญาณ' };
+}
+
+// ═══════════════════════════════════════════
+//  Calculate & Render
+// ═══════════════════════════════════════════
+function calculate() {
+  freq = parseFloat(document.getElementById('freqInput').value);
+  if (!freq || freq < 0.1) {
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('emptyState').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('resultsSection').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+
+  const ant = ANTENNAS[antennaType];
+  const res = ant.calc(freq);
+  const band = detectBand(freq);
+
+  // Results grid
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = `
+    <div class="result-box primary">
+      <div class="result-label">${res.label}</div>
+      <div class="result-value">${fmtN(res.main)}</div>
+      <div class="result-unit">${fmtU(res.main)}</div>
+    </div>
+    <div class="result-box">
+      <div class="result-label">ความยาวคลื่น λ</div>
+      <div class="result-value">${fmtN(lambda(freq) * 100)}</div>
+      <div class="result-unit">${fmtU(lambda(freq) * 100)}</div>
+    </div>
+    <div class="result-box">
+      <div class="result-label">ความถี่</div>
+      <div class="result-value">${freq < 1000 ? freq.toFixed(3) : (freq / 1000).toFixed(3)}</div>
+      <div class="result-unit">${freq < 1000 ? 'MHz' : 'GHz'}</div>
+    </div>
+    <div class="result-box">
+      <div class="result-label">Impedance</div>
+      <div class="result-value">${ant.impedance}</div>
+      <div class="result-unit">Ω</div>
+    </div>
+  `;
+
+  // Info band
+  const ib = document.getElementById('infoBand');
+  ib.innerHTML = '';
+  if (band) {
+    ib.innerHTML += `<div class="info-pill"><span class="dot"></span>${band.name}${band.note ? ` — ${band.note}` : ''}</div>`;
+  }
+  if (band?.warn) {
+    ib.innerHTML += `<div class="info-pill warn"><span class="dot"></span>${band.note}</div>`;
+  }
+
+  // Impedance bar
+  const imp = ant.impedance;
+  const pct = Math.min((imp / 110) * 100, 100);
+  document.getElementById('impFill').style.width = pct + '%';
+  document.getElementById('impMarker').style.left = pct + '%';
+
+  // Diagram
+  const diagramBadge = document.getElementById('diagramBadge');
+  document.getElementById('diagramTitle').textContent = ant.name.toUpperCase();
+  diagramBadge.textContent = `${freq.toFixed(3)} MHz`;
+
+  drawDiagram(ant, res, freq);
+
+  // Build steps
+  const steps = ant.steps(freq, res);
+  const bs = document.getElementById('buildSteps');
+  bs.innerHTML = steps.map(s => `
+    <div class="build-step">
+      <div class="step-num">${s.n}</div>
+      <div class="step-text">${s.t}</div>
+    </div>
+  `).join('');
+
+  // Badges
+  const br = document.getElementById('badgesRow');
+  br.innerHTML = ant.badges.map(b => {
+    const [cls, ...rest] = b.split(' ');
+    return `<span class="badge ${cls}">${rest.join(' ')}</span>`;
+  }).join('');
+
+  // Glow flash
+  const da = document.getElementById('diagramArea');
+  da.classList.remove('active');
+  void da.offsetWidth;
+  da.classList.add('active');
+}
+
+// ═══════════════════════════════════════════
+//  DRAW DIAGRAM
+// ═══════════════════════════════════════════
+function drawDiagram(ant, res, f) {
+  const canvas = document.getElementById('diagramCanvas');
+  const DPR = window.devicePixelRatio || 1;
+  const W_CSS = canvas.parentElement.clientWidth;
+  const H_CSS = 320;
+  canvas.style.height = H_CSS + 'px';
+  canvas.width = W_CSS * DPR;
+  canvas.height = H_CSS * DPR;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(DPR, DPR);
+
+  const W = W_CSS, H = H_CSS;
+  const cx = W / 2, cy = H / 2;
+
+  // Background gradient
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#0d1420');
+  bgGrad.addColorStop(1, '#080c14');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid dots
+  ctx.fillStyle = 'rgba(0,212,255,0.06)';
+  for (let x = 20; x < W; x += 30) {
+    for (let y = 20; y < H; y += 30) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Helper: glow line
+  function glowLine(x1, y1, x2, y2, color, width, blur) {
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = blur || 12;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width || 2.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Helper: dimension arrow
+  function dimArrow(x1, y1, x2, y2, label, side) {
+    const midX = (x1 + x2) / 2, midY = (y1 + y2) / 2;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0,212,255,0.5)';
+    ctx.fillStyle = 'rgba(0,212,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    [[x1, y1], [x2, y2]].forEach(([ax, ay]) => {
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(ax + Math.cos(angle + 2.5) * 7, ay + Math.sin(angle + 2.5) * 7);
+      ctx.lineTo(ax + Math.cos(angle - 2.5) * 7, ay + Math.sin(angle - 2.5) * 7);
+      ctx.closePath(); ctx.fill();
+    });
+
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillStyle = '#00d4ff';
+    ctx.textAlign = 'center';
+    const offX = side === 'right' ? 50 : (side === 'left' ? -50 : 0);
+    const offY = side === 'top' ? -14 : (side === 'bottom' ? 16 : -14);
+    ctx.fillText(label, midX + offX, midY + offY);
+    ctx.restore();
+  }
+
+  // Helper: dot node
+  function node(x, y, color, r) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, r || 5, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Helper: coax connector drawing
+  function drawSMA(x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    // body
+    ctx.fillStyle = '#c0a060';
+    ctx.shadowColor = '#c0a060';
+    ctx.shadowBlur = 6;
+    ctx.fillRect(-8, -5, 16, 10);
+    // center pin
+    ctx.fillStyle = '#ffe680';
+    ctx.fillRect(8, -1, 8, 2);
+    ctx.restore();
+  }
+
+  // Helper: label tag
+  function tag(x, y, text, align) {
+    ctx.save();
+    ctx.font = '10px Space Mono, monospace';
+    ctx.fillStyle = 'rgba(200,216,232,0.7)';
+    ctx.textAlign = align || 'center';
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  // Helper: colored tag
+  function tagColor(x, y, text, color, align) {
+    ctx.save();
+    ctx.font = '11px Space Mono, monospace';
+    ctx.fillStyle = color;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 6;
+    ctx.textAlign = align || 'center';
+    ctx.fillText(text, x, y);
+    ctx.restore();
+  }
+
+  // Signal wave emanation
+  function drawSignalWaves(x, y, dir) {
+    ctx.save();
+    for (let i = 1; i <= 3; i++) {
+      const r = 20 + i * 18;
+      const alpha = 0.12 - i * 0.03;
+      ctx.strokeStyle = `rgba(0,212,255,${alpha})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      if (dir === 'v') {
+        // arcs going up and down
+        ctx.arc(x, y, r, Math.PI * 0.2, Math.PI * 0.8, false);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x, y, r, Math.PI * 1.2, Math.PI * 1.8, false);
+        ctx.stroke();
+      } else {
+        ctx.arc(x, y, r, -Math.PI * 0.3, Math.PI * 0.3, false);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  // ─── Ground plane helper ───
+  function drawGround(x, y) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(100,150,200,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    const lines = [[14, 0], [8, 5], [8, -5], [18, 8], [18, -8]];
+    lines.forEach(([len, off]) => {
+      ctx.beginPath();
+      ctx.moveTo(x + off, y);
+      ctx.lineTo(x + off + len, y + 5);
+      ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  // ─── Draw by type ───
+  const ARM_SCALE = 100; // pixels for a half-wave (λ/2) for visual scaling
+  const armPx = Math.min(ARM_SCALE, (W * 0.35));
+
+  if (antennaType === 'dipole') {
+    const armLen = fmt(res.arm);
+    const y0 = cy;
+
+    // Feed point
+    drawSMA(cx, y0, Math.PI / 2);
+
+    // Arms
+    glowLine(cx, y0, cx, y0 - armPx, '#00d4ff', 4, 16);
+    glowLine(cx, y0, cx, y0 + armPx, '#39ff7e', 4, 16);
+
+    // End caps
+    glowLine(cx - 14, y0 - armPx, cx + 14, y0 - armPx, '#00d4ff', 3, 10);
+    glowLine(cx - 14, y0 + armPx, cx + 14, y0 + armPx, '#39ff7e', 3, 10);
+
+    // Nodes
+    node(cx, y0 - armPx, '#00d4ff');
+    node(cx, y0 + armPx, '#39ff7e');
+    node(cx, y0, '#fff', 4);
+
+    // Dimension lines
+    dimArrow(cx + 30, y0, cx + 30, y0 - armPx, armLen, 'right');
+    dimArrow(cx + 30, y0, cx + 30, y0 + armPx, armLen, 'right');
+
+    // Labels
+    tagColor(cx - 30, y0 - armPx / 2, '+ (hot)', '#00d4ff', 'right');
+    tagColor(cx - 30, y0 + armPx / 2, '− (gnd)', '#39ff7e', 'right');
+    tag(cx + 60, cy + 4, 'Feed Point', 'left');
+
+    // Signal waves from both ends
+    drawSignalWaves(cx, y0 - armPx - 10, 'v');
+    drawSignalWaves(cx, y0 + armPx + 10, 'v');
+
+    tag(cx, H - 18, '↕ ตั้งเสาแนวตั้ง รับรอบทิศ 360°', 'center');
+
+  } else if (antennaType === 'monopole') {
+    const armLen = fmt(res.arm);
+    const base = cy + 60;
+
+    // Ground plane
+    glowLine(cx - 80, base, cx + 80, base, 'rgba(100,150,200,0.6)', 2, 4);
+    drawGround(cx + 80, base);
+
+    // Radials
+    const radials = [[-70, 15], [-50, 12], [50, 12], [70, 15]];
+    radials.forEach(([dx, dy]) => {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(100,150,200,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(cx, base);
+      ctx.lineTo(cx + dx, base + dy);
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    tag(cx - 50, base + 28, 'Ground Radials ×4', 'center');
+
+    // Vertical element
+    glowLine(cx, base, cx, base - armPx, '#00d4ff', 4, 16);
+    glowLine(cx - 14, base - armPx, cx + 14, base - armPx, '#00d4ff', 3, 10);
+    node(cx, base - armPx, '#00d4ff');
+    node(cx, base, '#fff', 4);
+
+    drawSMA(cx, base + 2, -Math.PI / 2);
+    drawSignalWaves(cx, base - armPx - 12, 'v');
+
+    dimArrow(cx + 28, base, cx + 28, base - armPx, armLen, 'right');
+    tagColor(cx - 25, base - armPx / 2, 'radiator', '#00d4ff', 'right');
+    tag(cx, H - 18, '↕ ตั้งตรงแนวตั้ง Ground plane ขวาง', 'center');
+
+  } else if (antennaType === 'invertedv') {
+    const armLen = fmt(res.arm);
+    const apex = cy - 60;
+    const spread = armPx * 0.92;
+    const drop = spread * 0.85;
+
+    // Ground anchors
+    glowLine(cx - spread, apex + drop, cx - spread - 15, apex + drop + 15, 'rgba(100,150,200,0.4)', 1);
+    glowLine(cx + spread, apex + drop, cx + spread + 15, apex + drop + 15, 'rgba(100,150,200,0.4)', 1);
+    tag(cx - spread - 5, apex + drop + 28, 'anchor', 'center');
+    tag(cx + spread + 5, apex + drop + 28, 'anchor', 'center');
+
+    // Arms
+    glowLine(cx, apex, cx - spread, apex + drop, '#00d4ff', 4, 16);
+    glowLine(cx, apex, cx + spread, apex + drop, '#39ff7e', 4, 16);
+
+    // Nodes
+    node(cx, apex, '#fff', 5);
+    node(cx - spread, apex + drop, '#00d4ff');
+    node(cx + spread, apex + drop, '#39ff7e');
+
+    drawSMA(cx, apex, Math.PI / 2);
+
+    // Angle arc
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,209,102,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, apex, 35, Math.atan2(drop, -spread), Math.atan2(drop, spread), false);
+    ctx.stroke();
+    ctx.restore();
+    tag(cx, apex + 48, '~90–120°', 'center');
+
+    dimArrow(cx, apex, cx - spread, apex + drop, armLen, 'left');
+    dimArrow(cx, apex, cx + spread, apex + drop, armLen, 'right');
+
+    tag(cx, H - 18, '↑ แขวนจุด apex ให้สูงที่สุด', 'center');
+
+  } else if (antennaType === 'jpole') {
+    const longLen = fmt(res.long);
+    const shortLen = fmt(res.short);
+    const x0 = cx - 40;
+    const x1 = cx + 40;
+    const top = cy - armPx * 1.1;
+    const mid = cy + armPx * 0.3;
+    const bot = cy + armPx * 1.0;
+
+    // Short stub
+    glowLine(x0, mid, x0, bot, '#39ff7e', 4, 14);
+    // Bottom connector
+    glowLine(x0, bot, x1, bot, '#39ff7e', 3, 8);
+    // Long radiator
+    glowLine(x1, bot, x1, top, '#00d4ff', 4, 16);
+
+    // End caps
+    glowLine(x0 - 10, mid, x0 + 10, mid, '#39ff7e', 3, 8);
+    glowLine(x1 - 10, top, x1 + 10, top, '#00d4ff', 3, 8);
+
+    // Gap marker
+    const gapY = mid - 14;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,209,102,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(x0 - 18, gapY); ctx.lineTo(x0 + 18, gapY); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x0 - 18, mid); ctx.lineTo(x0 + 18, mid); ctx.stroke();
+    ctx.restore();
+    tag(x0 - 30, gapY + 8, 'gap\n~2.5cm', 'right');
+
+    // Feed point
+    drawSMA(x0 - 8, gapY + 7, Math.PI);
+
+    // Nodes
+    node(x1, top, '#00d4ff');
+    node(x0, mid, '#39ff7e');
+    node(x0, bot, 'rgba(100,150,200,0.8)', 4);
+    node(x1, bot, 'rgba(100,150,200,0.8)', 4);
+
+    drawSignalWaves(x1, top - 12, 'v');
+
+    // Dim lines
+    dimArrow(x1 + 28, bot, x1 + 28, top, longLen, 'right');
+    dimArrow(x0 - 28, bot, x0 - 28, mid, shortLen, 'left');
+
+    tagColor(x1 + 5, (bot + top) / 2, 'radiator\n3/4λ', '#00d4ff', 'left');
+    tagColor(x0 - 5, (bot + mid) / 2, 'stub\n1/4λ', '#39ff7e', 'right');
+
+    tag(cx, H - 18, '↕ ตั้งตรง รับรอบทิศ ไม่ต้อง ground', 'center');
+
+  } else if (antennaType === 'yagi') {
+    const { reflector, driven, director, spacing_rd, spacing_dd } = res;
+    const scale = armPx / (driven / 2);
+    const rLen = (reflector / 2) * scale;
+    const dLen = (driven / 2) * scale;
+    const dirLen = (director / 2) * scale;
+
+    const boom_y = cy;
+    const refX = cx - (spacing_rd / (driven / 2)) * dLen * 1.1 - dLen;
+    const driX = cx;
+    const dirX = cx + (spacing_dd / (driven / 2)) * dLen * 1.1 + dLen;
+
+    // Boom
+    glowLine(refX - 10, boom_y, dirX + 10, boom_y, 'rgba(150,180,210,0.5)', 4, 4);
+
+    // Reflector
+    glowLine(refX, boom_y - rLen, refX, boom_y + rLen, '#ff6b35', 3.5, 12);
+    node(refX, boom_y - rLen, '#ff6b35', 4);
+    node(refX, boom_y + rLen, '#ff6b35', 4);
+    tagColor(refX, boom_y + rLen + 20, 'Reflector', '#ff6b35', 'center');
+    dimArrow(refX - 24, boom_y, refX - 24, boom_y - rLen, fmt(reflector / 2), 'left');
+    dimArrow(refX - 24, boom_y, refX - 24, boom_y + rLen, fmt(reflector / 2), 'left');
+
+    // Driven element
+    glowLine(driX, boom_y - dLen, driX, boom_y + dLen, '#00d4ff', 4, 16);
+    node(driX, boom_y - dLen, '#00d4ff', 5);
+    node(driX, boom_y + dLen, '#00d4ff', 5);
+    node(driX, boom_y, '#fff', 4);
+    drawSMA(driX - 8, boom_y, Math.PI);
+    tagColor(driX, boom_y + dLen + 20, 'Driven', '#00d4ff', 'center');
+
+    // Director
+    glowLine(dirX, boom_y - dirLen, dirX, boom_y + dirLen, '#39ff7e', 3.5, 12);
+    node(dirX, boom_y - dirLen, '#39ff7e', 4);
+    node(dirX, boom_y + dirLen, '#39ff7e', 4);
+    tagColor(dirX, boom_y + dirLen + 20, 'Director', '#39ff7e', 'center');
+    dimArrow(dirX + 24, boom_y, dirX + 24, boom_y - dirLen, fmt(director / 2), 'right');
+    dimArrow(dirX + 24, boom_y, dirX + 24, boom_y + dirLen, fmt(director / 2), 'right');
+
+    // Signal beam
+    for (let i = 1; i <= 4; i++) {
+      const r = 20 + i * 22;
+      const a = 0.14 - i * 0.03;
+      ctx.save();
+      ctx.strokeStyle = `rgba(57,255,126,${a})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(dirX, boom_y, r, -Math.PI * 0.35, Math.PI * 0.35, false);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Direction arrow
+    ctx.save();
+    ctx.fillStyle = 'rgba(57,255,126,0.5)';
+    ctx.shadowColor = '#39ff7e';
+    ctx.shadowBlur = 8;
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText('→ สัญญาณ', dirX + armPx * 0.35, boom_y + 5);
+    ctx.restore();
+
+    tag(cx, H - 18, '← ต้องหันทิศ Director ไปหาแหล่งสัญญาณ →', 'center');
+
+  } else if (antennaType === 'qfh') {
+    const { dia, height } = res;
+    const scale = Math.min(armPx * 1.8 / height, armPx / (dia / 2));
+    const dPx = (dia / 2) * scale;
+    const hPx = (height * 0.4) * scale;
+
+    const baseY = cy + hPx;
+
+    // Draw simplified QFH coils
+    // Outer cylinder silhouette
+    ctx.save();
+    ctx.strokeStyle = 'rgba(30,58,95,0.8)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY, dPx, dPx * 0.3, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY - hPx, dPx, dPx * 0.3, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Side rails (dashed)
+    ctx.save();
+    ctx.strokeStyle = 'rgba(30,58,95,0.6)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    glowLine(cx - dPx, baseY - 5, cx - dPx, baseY - hPx + 5, 'rgba(30,58,95,0.4)', 1, 0);
+    glowLine(cx + dPx, baseY - 5, cx + dPx, baseY - hPx + 5, 'rgba(30,58,95,0.4)', 1, 0);
+    ctx.restore();
+
+    // Big loops (two loops, phase 0° and 180°)
+    function drawHelix(color, phaseOffset, label) {
+      const steps = 60;
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const y = baseY - t * hPx;
+        const angle = t * Math.PI * 2 + phaseOffset;
+        const x = cx + Math.cos(angle) * dPx;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // second half
+      ctx.beginPath();
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const y = baseY - t * hPx;
+        const angle = t * Math.PI * 2 + phaseOffset + Math.PI;
+        const x = cx + Math.cos(angle) * dPx;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    drawHelix('#00d4ff', 0, 'Loop A (0°)');
+    drawHelix('#ff6b35', Math.PI * 0.5, 'Loop B (90°)');
+
+    // Top/bottom nodes
+    node(cx, baseY, '#fff', 5);
+    node(cx, baseY - hPx, '#fff', 5);
+    drawSMA(cx, baseY + 8, -Math.PI / 2);
+
+    // Dimension labels
+    dimArrow(cx + dPx + 18, baseY, cx + dPx + 18, baseY - hPx, fmt(height * 0.4), 'right');
+    dimArrow(cx, baseY + 24, cx + dPx, baseY + 24, fmt(dia / 2), 'bottom');
+
+    // Color key
+    tagColor(cx + dPx + 36, cy - 20, '━ Loop A (0°)', '#00d4ff', 'left');
+    tagColor(cx + dPx + 36, cy - 4, '━ Loop B (90°)', '#ff6b35', 'left');
+
+    // Circular polarization badge
+    ctx.save();
+    ctx.strokeStyle = 'rgba(0,212,255,0.3)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([]);
+    for (let i = 1; i <= 3; i++) {
+      ctx.globalAlpha = 0.05 + i * 0.04;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 30, i * 28, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    tag(cx, H - 18, '↑ ชี้ขึ้นฟ้า รับ Circular Polarization จากดาวเทียม', 'center');
+  }
+}
+
+// ═══════════════════════════════════════════
+//  Event Listeners
+// ═══════════════════════════════════════════
+document.getElementById('freqInput').addEventListener('input', calculate);
+
+document.querySelectorAll('.vf-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.vf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    vf = parseFloat(btn.dataset.vf);
+    calculate();
+  });
+});
+
+document.querySelectorAll('.preset-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('freqInput').value = chip.dataset.f;
+    calculate();
+  });
+});
+
+document.querySelectorAll('.type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    antennaType = btn.dataset.type;
+    calculate();
+  });
+});
+
+window.addEventListener('resize', () => { if (freq > 0) calculate(); });
+</script>
+</body>
+</html>
