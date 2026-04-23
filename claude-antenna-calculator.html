@@ -155,6 +155,45 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 .bi{color:var(--acc);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06);}
 .bp{color:var(--acc5);border-color:rgba(199,125,255,.3);background:rgba(199,125,255,.06);}
 .bd{color:var(--txtd);border-color:var(--border);}
+/* ── Auto-select banner ── */
+.auto-banner{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(57,255,126,0.07);
+  border:1px solid rgba(57,255,126,0.25);
+  border-radius:8px;padding:8px 14px;
+  margin-bottom:12px;font-size:11px;color:var(--acc3);
+  font-family:var(--mono);
+  animation:bannerIn .3s ease;
+}
+.auto-banner.manual{
+  background:rgba(255,209,102,0.07);
+  border-color:rgba(255,209,102,0.25);
+  color:var(--acc4);
+}
+.auto-banner .b-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+  background:var(--acc3);box-shadow:0 0 6px var(--acc3);
+}
+.auto-banner.manual .b-dot{
+  background:var(--acc4);box-shadow:0 0 6px var(--acc4);
+}
+.auto-banner .b-reset{
+  margin-left:auto;cursor:pointer;
+  font-size:9px;opacity:.7;white-space:nowrap;
+  background:none;border:none;color:inherit;
+  padding:2px 6px;border-radius:4px;
+  border:1px solid currentColor;
+  transition:opacity .15s;
+}
+.auto-banner .b-reset:hover{opacity:1;}
+@keyframes bannerIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+/* highlight auto-selected tbtn differently */
+.tbtn.auto-on{
+  border-color:var(--acc3);
+  background:rgba(57,255,126,0.07);
+  box-shadow:0 0 12px rgba(57,255,126,0.12);
+}
+.tbtn.auto-on::after{content:'AUTO';position:absolute;top:5px;right:5px;font-size:7px;font-family:var(--mono);color:var(--acc3);letter-spacing:1px;}
 .empty{text-align:center;padding:48px 20px;color:var(--txtd);font-family:var(--mono);font-size:11px;}
 .eicon{font-size:46px;margin-bottom:10px;opacity:.25;}
 footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--txtd);letter-spacing:2px;}
@@ -205,6 +244,7 @@ footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);fon
 
 <div class="card">
   <div class="clabel">02 — เลือกประเภทเสาอากาศ (15 แบบ)</div>
+  <div id="autoBanner" style="display:none"></div>
   <div class="tgrid" id="tgrid">
     <div class="tbtn on" data-type="dipole"><div class="ticon">&#x1F4E1;</div><div class="tname">Dipole</div><div class="tsub">&#189;&#955;</div><div class="tcat omni">Omni</div></div>
     <div class="tbtn" data-type="monopole"><div class="ticon">&#x1F5FC;</div><div class="tname">Monopole</div><div class="tsub">&#188;&#955;</div><div class="tcat omni">Omni</div></div>
@@ -266,6 +306,44 @@ footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);fon
 <script>
 const C=299.792458;
 let freq=0,vf=0.95,atype='dipole';
+let userOverride=false; // true = user manually picked antenna type
+
+// ── Auto-select logic ──
+// Returns the most appropriate antenna type key for a given frequency
+function autoSelectAntenna(f){
+  if(!f||f<0.1) return 'dipole';
+
+  // HF (< 30 MHz) → Long Wire — ต้องการ Direct Sampling
+  if(f < 30) return 'longwire';
+
+  // FM Broadcast (88–108 MHz) → Dipole — ง่ายที่สุด สัญญาณแรงในเมือง
+  if(f <= 108) return 'dipole';
+
+  // Aviation AM / VOR (108–136 MHz) → Dipole
+  if(f <= 136) return 'dipole';
+
+  // Satellite 137–138 MHz (Meteor-M2) → QFH — ดีที่สุดสำหรับดาวเทียม LEO
+  if(f >= 136 && f <= 138.5) return 'qfh';
+
+  // 2m Ham / APRS / VHF comms (138–175 MHz) → J-Pole — ไม่ต้อง ground plane, gain ดี
+  if(f <= 175) return 'jpole';
+
+  // Marine VHF / VHF สื่อสาร (175–300 MHz) → Ground Plane — omni สมบูรณ์
+  if(f <= 300) return 'groundplane';
+
+  // UHF สื่อสาร / ISM / Trunking (300–700 MHz) → Ground Plane
+  if(f <= 700) return 'groundplane';
+
+  // UHF สูง (700–1080 MHz) → Collinear — gain ดีสำหรับ UHF สูง
+  if(f <= 1080) return 'collinear';
+
+  // ADS-B 1090 MHz → Collinear — gain สูง เห็นเครื่องบินได้ไกล
+  if(f <= 1100) return 'collinear';
+
+  // L-Band satellite (>1100 MHz) → Yagi 3-el — ต้องการ directional gain
+  return 'yagi3';
+}
+
 function lam(f,v){return(C/f)*(v!==undefined?v:vf);}
 function fmt(cm){if(cm>=100)return(cm/100).toFixed(3)+' m';if(cm>=10)return cm.toFixed(1)+' cm';return cm.toFixed(2)+' cm';}
 function fmtV(cm){return cm>=100?(cm/100).toFixed(3):cm.toFixed(1);}
@@ -554,10 +632,32 @@ function calc(){
   if(!freq||freq<0.1){
     document.getElementById('res').style.display='none';
     document.getElementById('es').style.display='block';
+    document.getElementById('autoBanner').style.display='none';
     return;
   }
   document.getElementById('res').style.display='block';
   document.getElementById('es').style.display='none';
+
+  // ── Auto-select antenna if user has not manually overridden ──
+  if(!userOverride){
+    const suggested=autoSelectAntenna(freq);
+    if(suggested!==atype){
+      atype=suggested;
+      // Update visual selection
+      document.querySelectorAll('.tbtn').forEach(x=>{
+        x.classList.remove('on','auto-on');
+        if(x.dataset.type===atype) x.classList.add('auto-on');
+      });
+    } else {
+      // Keep highlighting current as auto
+      document.querySelectorAll('.tbtn').forEach(x=>{
+        if(x.classList.contains('on')) x.classList.replace('on','auto-on');
+      });
+    }
+    updateBanner(false);
+  } else {
+    updateBanner(true);
+  }
   const ant=ANT[atype],r=ant.calc(freq),band=detectBand(freq);
 
   // Results grid
@@ -627,375 +727,255 @@ function renderInfo(ant){
     '</div>';
 }
 
-// -------------------------------------------------------------------
-// ส่วนที่ 12 (แก้ไข): ฟังก์ชัน drawDiagram() (Responsive)
-// -------------------------------------------------------------------
-function drawDiagram(ant, r) {
-    const cv = document.getElementById('dc');
-    const DPR = window.devicePixelRatio || 1;
-    const W = cv.parentElement.clientWidth;
-    const H = 320; // ความสูงคงที่
-    cv.style.height = H + 'px';
-    cv.width = W * DPR;
-    cv.height = H * DPR;
-    const ctx = cv.getContext('2d');
-    ctx.scale(DPR, DPR);
+function drawDiagram(ant,r){
+  const cv=document.getElementById('dc');
+  const DPR=window.devicePixelRatio||1;
+  const W=cv.parentElement.clientWidth,H=320;
+  cv.style.height=H+'px';cv.width=W*DPR;cv.height=H*DPR;
+  const ctx=cv.getContext('2d');ctx.scale(DPR,DPR);
+  const cx=W/2,cy=H/2;
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0a1220');bg.addColorStop(1,'#060a12');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='rgba(0,212,255,0.05)';
+  for(let x=25;x<W;x+=32)for(let y=25;y<H;y+=32){ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill();}
 
-    // --- Responsive Scaling ---
-    const unit = Math.min(W / 6, H / 5); // หน่วยวัดหลักสำหรับ Responsive
-    const cx = W / 2;
-    const cy = H / 2;
-    const AP = unit * 1.2; // ความยาวพื้นฐานของ Element (ปรับจาก unit)
+  const gl=(x1,y1,x2,y2,c,w,b)=>{ctx.save();ctx.shadowColor=c;ctx.shadowBlur=b||12;ctx.strokeStyle=c;ctx.lineWidth=w||2.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();};
+  const nd=(x,y,c,r2)=>{ctx.save();ctx.beginPath();ctx.arc(x,y,r2||5,0,Math.PI*2);ctx.fillStyle=c;ctx.shadowColor=c;ctx.shadowBlur=10;ctx.fill();ctx.restore();};
+  const lb=(x,y,t,a,c,fs)=>{ctx.save();ctx.font=(fs||10)+'px Space Mono,monospace';ctx.fillStyle=c||'rgba(184,204,222,0.7)';ctx.textAlign=a||'center';ctx.fillText(t,x,y);ctx.restore();};
+  const glb=(x,y,t,a,c,fs)=>{ctx.save();ctx.font=(fs||11)+'px Space Mono,monospace';ctx.fillStyle=c||'#00d4ff';ctx.shadowColor=c||'#00d4ff';ctx.shadowBlur=6;ctx.textAlign=a||'center';ctx.fillText(t,x,y);ctx.restore();};
+  const SMA=(x,y,ang)=>{ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.fillStyle='#c8a050';ctx.shadowColor='#c8a050';ctx.shadowBlur=5;ctx.fillRect(-9,-4,18,8);ctx.fillStyle='#ffe080';ctx.fillRect(9,-1.5,8,3);ctx.restore();};
+  const dim=(x1,y1,x2,y2,t,ox,oy)=>{ctx.save();ctx.strokeStyle='rgba(0,212,255,0.45)';ctx.fillStyle='rgba(0,212,255,0.45)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);const ang=Math.atan2(y2-y1,x2-x1);[[x1,y1],[x2,y2]].forEach(([ax,ay])=>{ctx.beginPath();ctx.moveTo(ax,ay);ctx.lineTo(ax+Math.cos(ang+2.5)*6,ay+Math.sin(ang+2.5)*6);ctx.lineTo(ax+Math.cos(ang-2.5)*6,ay+Math.sin(ang-2.5)*6);ctx.closePath();ctx.fill();});ctx.font='9px Space Mono,monospace';ctx.fillStyle='#00d4ff';ctx.textAlign='center';ctx.fillText(t,(x1+x2)/2+(ox||0),(y1+y2)/2+(oy||-12));ctx.restore();};
+  const wv=(x,y,d)=>{for(let i=1;i<=3;i++){const a2=0.1-i*0.025;ctx.save();ctx.strokeStyle='rgba(0,212,255,'+a2+')';ctx.lineWidth=1;ctx.beginPath();if(d==='v'){ctx.arc(x,y,18+i*16,Math.PI*.2,Math.PI*.8);ctx.stroke();ctx.beginPath();ctx.arc(x,y,18+i*16,Math.PI*1.2,Math.PI*1.8);}else ctx.arc(x,y,18+i*16,-Math.PI*.3,Math.PI*.3);ctx.stroke();ctx.restore();}};
+  const gnd=(x,y)=>{ctx.save();ctx.strokeStyle='rgba(90,140,190,0.5)';ctx.lineWidth=1.5;ctx.lineCap='round';[[18,0],[12,5],[12,-5],[22,8],[22,-8]].forEach(([l,o])=>{ctx.beginPath();ctx.moveTo(x+o,y);ctx.lineTo(x+o+l,y+6);ctx.stroke();});ctx.restore();};
+  const AP=Math.min(100,W*0.34);
 
-    // --- Background ---
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, '#0a1220');
-    bg.addColorStop(1, '#060a12');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = 'rgba(0,212,255,0.05)';
-    for (let x = 25; x < W; x += 32) {
-        for (let y = 25; y < H; y += 32) {
-            ctx.beginPath();
-            ctx.arc(x, y, 1, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
+  if(atype==='dipole'){
+    SMA(cx,cy,Math.PI/2);
+    gl(cx,cy,cx,cy-AP,'#00d4ff',4,16);gl(cx,cy,cx,cy+AP,'#39ff7e',4,16);
+    gl(cx-14,cy-AP,cx+14,cy-AP,'#00d4ff',3,10);gl(cx-14,cy+AP,cx+14,cy+AP,'#39ff7e',3,10);
+    nd(cx,cy-AP,'#00d4ff');nd(cx,cy+AP,'#39ff7e');nd(cx,cy,'#fff',4);
+    dim(cx+32,cy,cx+32,cy-AP,fmt(r.arm),8,0);dim(cx+32,cy,cx+32,cy+AP,fmt(r.arm),8,0);
+    glb(cx-28,(cy-AP/2),'+ (hot)','right','#00d4ff');glb(cx-28,(cy+AP/2),'- (gnd)','right','#39ff7e');
+    wv(cx,cy-AP-10,'v');wv(cx,cy+AP+10,'v');
+    lb(cx,H-16,'Dipole แนวตั้ง: รับรอบทิศ | แนวนอน V-shape: รับดาวเทียม');
 
-    // --- Helper Functions (with Responsive Font Size) ---
-    const fs = (base) => Math.max(base * 0.8, Math.min(base, unit / 5)); // Responsive font size
-    
-    const gl = (x1, y1, x2, y2, c, w, b) => { ctx.save(); ctx.shadowColor = c; ctx.shadowBlur = b || 12; ctx.strokeStyle = c; ctx.lineWidth = w || Math.max(1.5, unit/30); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); };
-    const nd = (x, y, c, r2) => { ctx.save(); ctx.beginPath(); ctx.arc(x, y, r2 || Math.max(2, unit/15), 0, Math.PI * 2); ctx.fillStyle = c; ctx.shadowColor = c; ctx.shadowBlur = 10; ctx.fill(); ctx.restore(); };
-    const lb = (x, y, t, a, c, fsize) => { ctx.save(); ctx.font = `${fsize || fs(10)}px Space Mono,monospace`; ctx.fillStyle = c || 'rgba(184,204,222,0.7)'; ctx.textAlign = a || 'center'; ctx.fillText(t, x, y); ctx.restore(); };
-    const glb = (x, y, t, a, c, fsize) => { ctx.save(); ctx.font = `bold ${fsize || fs(11)}px Space Mono,monospace`; ctx.fillStyle = c || '#00d4ff'; ctx.shadowColor = c || '#00d4ff'; ctx.shadowBlur = 6; ctx.textAlign = a || 'center'; ctx.fillText(t, x, y); ctx.restore(); };
-    const SMA = (x, y, ang) => { const s = unit/10; ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.fillStyle = '#c8a050'; ctx.shadowColor = '#c8a050'; ctx.shadowBlur = 5; ctx.fillRect(-s*1.2, -s*0.5, s*2.4, s); ctx.fillStyle = '#ffe080'; ctx.fillRect(s*1.2, -s*0.2, s, s*0.4); ctx.restore(); };
-    const dim = (x1, y1, x2, y2, t, ox, oy) => { ctx.save(); ctx.strokeStyle = 'rgba(0,212,255,0.45)'; ctx.fillStyle = 'rgba(0,212,255,0.45)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]); const ang = Math.atan2(y2 - y1, x2 - x1); [[x1, y1], [x2, y2]].forEach(([ax, ay]) => { ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + Math.cos(ang + 2.5) * 6, ay + Math.sin(ang + 2.5) * 6); ctx.lineTo(ax + Math.cos(ang - 2.5) * 6, ay + Math.sin(ang - 2.5) * 6); ctx.closePath(); ctx.fill(); }); ctx.font = `${fs(9)}px Space Mono,monospace`; ctx.fillStyle = '#00d4ff'; ctx.textAlign = 'center'; ctx.fillText(t, (x1 + x2) / 2 + (ox || 0), (y1 + y2) / 2 + (oy || -fs(12))); ctx.restore(); };
-    const wv = (x, y, d) => { for (let i = 1; i <= 3; i++) { const a2 = 0.1 - i * 0.025; ctx.save(); ctx.strokeStyle = 'rgba(0,212,255,' + a2 + ')'; ctx.lineWidth = 1; ctx.beginPath(); if (d === 'v') { ctx.arc(x, y, unit/4 + i * unit/5, Math.PI * .2, Math.PI * .8); ctx.stroke(); ctx.beginPath(); ctx.arc(x, y, unit/4 + i * unit/5, Math.PI * 1.2, Math.PI * 1.8); } else ctx.arc(x, y, unit/4 + i * unit/5, -Math.PI * .3, Math.PI * .3); ctx.stroke(); ctx.restore(); } };
-    const gnd = (x, y) => { const s = unit/5; ctx.save(); ctx.strokeStyle = 'rgba(90,140,190,0.5)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round'; [[s*0.9, 0], [s*0.6, s*0.25], [s*0.6, -s*0.25], [s*1.1, s*0.4], [s*1.1, -s*0.4]].forEach(([l, o]) => { ctx.beginPath(); ctx.moveTo(x + o, y); ctx.lineTo(x + o + l, y + s*0.3); ctx.stroke(); }); ctx.restore(); };
-// -------------------------------------------------------------------
-// ส่วนที่ 13 (แก้ไข): drawDiagram() (Responsive Diagrams 1-4)
-// -------------------------------------------------------------------
-    if (atype === 'dipole') {
-        const armLength = AP;
-        SMA(cx, cy, Math.PI / 2);
-        gl(cx, cy, cx, cy - armLength, '#00d4ff', 4, 16);
-        gl(cx, cy, cx, cy + armLength, '#39ff7e', 4, 16);
-        nd(cx, cy - armLength, '#00d4ff');
-        nd(cx, cy + armLength, '#39ff7e');
-        nd(cx, cy, '#fff', fs(4));
-        dim(cx + unit/2, cy, cx + unit/2, cy - armLength, fmt(r.arm), unit/8, 0);
-        dim(cx + unit/2, cy, cx + unit/2, cy + armLength, fmt(r.arm), unit/8, 0);
-        glb(cx - unit/3, cy - armLength / 2, '+ (hot)', 'right', '#00d4ff');
-        glb(cx - unit/3, cy + armLength / 2, '- (gnd)', 'right', '#39ff7e');
-        wv(cx, cy - armLength - unit/8, 'v');
-        wv(cx, cy + armLength + unit/8, 'v');
-        lb(cx, H - fs(16), 'Dipole แนวตั้ง: รับรอบทิศ | แนวนอน V-shape: รับดาวเทียม', 'center', 'rgba(184,204,222,0.7)', fs(10));
+  }else if(atype==='monopole'){
+    const base=cy+60;
+    gl(cx-85,base,cx+85,base,'rgba(90,140,190,0.5)',2,4);gnd(cx+85,base);
+    [[-68,14],[-48,11],[48,11],[68,14]].forEach(([dx,dy])=>{ctx.save();ctx.strokeStyle='rgba(90,140,190,.38)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(cx,base);ctx.lineTo(cx+dx,base+dy);ctx.stroke();ctx.restore();});
+    lb(cx,base+28,'Ground Radials x4');
+    gl(cx,base,cx,base-AP,'#00d4ff',4,16);gl(cx-14,base-AP,cx+14,base-AP,'#00d4ff',3,10);
+    nd(cx,base-AP,'#00d4ff');nd(cx,base,'#fff',4);SMA(cx,base+2,-Math.PI/2);
+    wv(cx,base-AP-12,'v');dim(cx+30,base,cx+30,base-AP,fmt(r.arm),8,0);
+    lb(cx,H-16,'Monopole: ตั้งตรง | radial 3-4 เส้น แนวนอน = 50 ohm');
 
-    } else if (atype === 'monopole') {
-        const armLength = AP * 1.1;
-        const base = cy + unit * 0.8;
-        gl(cx - unit * 1.2, base, cx + unit * 1.2, base, 'rgba(90,140,190,0.5)', 2, 4);
-        gnd(cx + unit * 1.2, base);
-        lb(cx, base + unit/2.5, 'Ground Plane / Radials');
-        gl(cx, base, cx, base - armLength, '#00d4ff', 4, 16);
-        nd(cx, base - armLength, '#00d4ff');
-        nd(cx, base, '#fff', fs(4));
-        SMA(cx, base + fs(2), -Math.PI / 2);
-        wv(cx, base - armLength - unit/8, 'v');
-        dim(cx + unit/2, base, cx + unit/2, base - armLength, fmt(r.arm), unit/8, 0);
-        lb(cx, H - fs(16), 'Monopole: ตั้งตรง | ต้องการ Ground Plane ที่ดี', 'center', 'rgba(184,204,222,0.7)', fs(10));
+  }else if(atype==='invertedv'){
+    const apex=cy-55,sp=AP*0.92,dp=sp*0.85;
+    gl(cx-sp,apex+dp,cx-sp-14,apex+dp+14,'rgba(90,140,190,0.4)',1);
+    gl(cx+sp,apex+dp,cx+sp+14,apex+dp+14,'rgba(90,140,190,0.4)',1);
+    lb(cx-sp,apex+dp+28,'anchor');lb(cx+sp,apex+dp+28,'anchor');
+    gl(cx,apex,cx-sp,apex+dp,'#00d4ff',4,16);gl(cx,apex,cx+sp,apex+dp,'#39ff7e',4,16);
+    nd(cx,apex,'#fff',5);nd(cx-sp,apex+dp,'#00d4ff');nd(cx+sp,apex+dp,'#39ff7e');SMA(cx,apex,Math.PI/2);
+    ctx.save();ctx.strokeStyle='rgba(255,209,102,0.4)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,apex,34,Math.atan2(dp,-sp),Math.atan2(dp,sp),false);ctx.stroke();ctx.restore();
+    lb(cx,apex+50,'90-120 deg');
+    dim(cx,apex,cx-sp,apex+dp,fmt(r.arm),-30,0);dim(cx,apex,cx+sp,apex+dp,fmt(r.arm),30,0);
+    lb(cx,H-16,'Inverted-V: แขวน feed point ให้สูงที่สุด | แขน 45 deg จากตั้ง');
 
-    } else if (atype === 'invertedv') {
-        const apex = cy - unit * 0.7;
-        const armLength = AP;
-        const angle = 110 * (Math.PI / 180); // 110 degrees
-        const xOffset = armLength * Math.sin(angle / 2);
-        const yOffset = armLength * Math.cos(angle / 2);
+  }else if(atype==='groundplane'){
+    const base=cy+50;
+    gl(cx,base,cx,base-AP,'#00d4ff',4,16);gl(cx-14,base-AP,cx+14,base-AP,'#00d4ff',3,10);
+    nd(cx,base-AP,'#00d4ff');nd(cx,base,'#fff',4);SMA(cx,base+2,-Math.PI/2);
+    [[-AP*.85,8],[AP*.85,8],[-AP*.6,-AP*.5],[AP*.6,-AP*.5]].forEach(([dx,dy])=>{
+      gl(cx,base,cx+dx,base+dy,'rgba(57,255,126,0.7)',2.5,8);nd(cx+dx,base+dy,'#39ff7e',4);});
+    dim(cx+34,base,cx+34,base-AP,fmt(r.arm),8,0);
+    glb(cx-18,base+20,'radials x4','center','#39ff7e',9);
+    wv(cx,base-AP-12,'v');lb(cx,H-16,'Ground Plane: radiator ตั้ง | radial 4 เส้น แนวนอน = 50 ohm');
 
-        gl(cx, apex, cx - xOffset, apex + yOffset, '#00d4ff', 4, 16);
-        gl(cx, apex, cx + xOffset, apex + yOffset, '#39ff7e', 4, 16);
-        nd(cx, apex, '#fff', fs(5));
-        nd(cx - xOffset, apex + yOffset, '#00d4ff');
-        nd(cx + xOffset, apex + yOffset, '#39ff7e');
-        SMA(cx, apex, Math.PI / 2);
+  }else if(atype==='jpole'){
+    const x0=cx-36,x1=cx+36,top=cy-AP*1.1,mid=cy+AP*0.28,bot=cy+AP*0.95;
+    gl(x0,mid,x0,bot,'#39ff7e',4,14);gl(x0,bot,x1,bot,'#39ff7e',3,8);gl(x1,bot,x1,top,'#00d4ff',4,16);
+    gl(x0-10,mid,x0+10,mid,'#39ff7e',3,8);gl(x1-10,top,x1+10,top,'#00d4ff',3,8);
+    const gy=mid-12;
+    ctx.save();ctx.strokeStyle='rgba(255,209,102,.7)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x0-16,gy);ctx.lineTo(x0+16,gy);ctx.stroke();ctx.beginPath();ctx.moveTo(x0-16,mid);ctx.lineTo(x0+16,mid);ctx.stroke();ctx.restore();
+    lb(x0-28,gy+8,'gap');SMA(x0-6,gy+6,Math.PI);
+    nd(x1,top,'#00d4ff');nd(x0,mid,'#39ff7e');nd(x0,bot,'rgba(90,140,190,.8)',4);nd(x1,bot,'rgba(90,140,190,.8)',4);
+    wv(x1,top-12,'v');dim(x1+30,bot,x1+30,top,fmt(r.long),8,0);dim(x0-30,bot,x0-30,mid,fmt(r.short),-8,0);
+    glb(x1+5,(bot+top)/2,'3/4 radiator','left','#00d4ff',9);glb(x0-5,(bot+mid)/2,'1/4 stub','right','#39ff7e',9);
+    lb(cx,H-16,'J-Pole: ตั้งตรง | ไม่ต้อง Ground Plane | Gain +3 dBd');
 
-        ctx.save(); ctx.strokeStyle = 'rgba(255,209,102,0.4)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, apex, unit/2, Math.PI/2 - angle/2, Math.PI/2 + angle/2, false); ctx.stroke(); ctx.restore();
-        lb(cx, apex + unit/2, '90-120°');
-        
-        dim(cx, apex, cx - xOffset, apex + yOffset, fmt(r.arm), -unit/2, 0);
-        dim(cx, apex, cx + xOffset, apex + yOffset, fmt(r.arm), unit/2, 0);
-        lb(cx, H - fs(16), 'Inverted-V: แขวน feed point ให้สูง | Impedance ~50Ω', 'center', 'rgba(184,204,222,0.7)', fs(10));
+  }else if(atype==='slimjim'){
+    const x0=cx-28,x1=cx+28,top=cy-AP,fold=cy+AP*0.8;
+    gl(x0,fold,x0,top,'#00d4ff',4,16);gl(x0,top,x1,top,'#00d4ff',3,10);gl(x1,top,x1,fold,'#39ff7e',4,14);
+    ctx.save();ctx.strokeStyle='rgba(255,209,102,.8)';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x1-14,fold);ctx.lineTo(x1+14,fold);ctx.stroke();ctx.restore();
+    SMA(x1+10,fold+8,0);nd(x0,top,'#00d4ff',4);nd(x1,top,'#00d4ff',4);nd(x0,fold,'rgba(90,140,190,.8)',4);
+    wv(cx,top-12,'v');dim(x0-30,top,x0-30,fold,fmt(r.total),-8,0);
+    glb(cx,top-20,'Short circuit','center','rgba(255,100,100,.8)',9);
+    lb(x1+36,fold+6,'feed+gap','left');lb(cx,H-16,'Slim Jim: Low-angle radiation | ทำจาก 300 ohm ribbon cable');
 
-    } else if (atype === 'groundplane') {
-        const armLength = AP * 1.1;
-        const base = cy + unit * 0.6;
-        const radialLength = armLength * 0.9;
+  }else if(atype==='collinear'){
+    const s1t=cy-AP,s1b=cy,s2b=cy+AP,px=cx+28;
+    gl(cx,s1t,cx,s1b,'#00d4ff',4,16);gl(cx,s1b,cx,s2b,'#39ff7e',4,16);
+    gl(cx-14,s1t,cx+14,s1t,'#00d4ff',3,10);gl(cx-14,s2b,cx+14,s2b,'#39ff7e',3,10);
+    gl(px,s1b,px,s1b+AP*0.5,'rgba(255,209,102,0.7)',3,10);
+    glb(px+5,(s1b+s1b+AP*.5)/2,'phasing stub','left','#ffd166',9);
+    nd(cx,s1t,'#00d4ff');nd(cx,s1b,'#fff',5);nd(cx,s2b,'#39ff7e');SMA(cx-8,s2b,Math.PI);
+    wv(cx,s1t-12,'v');dim(cx-34,s1t,cx-34,s1b,fmt(r.section),-8,0);dim(cx-34,s1b,cx-34,s2b,fmt(r.section),-8,0);
+    glb(cx-5,(s1t+s1b)/2,'Section 1','right','#00d4ff',9);glb(cx-5,(s1b+s2b)/2,'Section 2','right','#39ff7e',9);
+    lb(cx,H-16,'Collinear: ทุก 2 section +3 dBi | ADS-B 1090 ดีที่สุด');
 
-        gl(cx, base, cx, base - armLength, '#00d4ff', 4, 16);
-        nd(cx, base - armLength, '#00d4ff');
-        nd(cx, base, '#fff', fs(4));
-        SMA(cx, base + fs(2), -Math.PI / 2);
+  }else if(atype==='fiveEighths'){
+    const base=cy+55,elen=AP*1.25;
+    gl(cx-85,base,cx+85,base,'rgba(90,140,190,0.5)',2,4);gnd(cx+85,base);
+    [[-70,12],[-50,10],[50,10],[70,12]].forEach(([dx,dy])=>{ctx.save();ctx.strokeStyle='rgba(90,140,190,.35)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(cx,base);ctx.lineTo(cx+dx,base+dy);ctx.stroke();ctx.restore();});
+    gl(cx,base,cx,base-elen,'#00d4ff',4,16);gl(cx-14,base-elen,cx+14,base-elen,'#00d4ff',3,10);
+    nd(cx,base-elen,'#00d4ff');nd(cx,base,'#fff',4);SMA(cx,base+2,-Math.PI/2);
+    wv(cx,base-elen-12,'v');dim(cx+34,base,cx+34,base-elen,fmt(r.arm),8,0);
+    for(let i=0;i<5;i++){const wy=base-10-i*8;ctx.save();ctx.strokeStyle='rgba(255,209,102,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.ellipse(cx,wy,10,4,0,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    glb(cx+22,base-25,'matching coil','left','#ffd166',9);
+    lb(cx,H-16,'5/8 Lambda: Gain > 1/4 | ต้องมี matching coil ที่ฐาน');
 
-        // Radials
-        [[-radialLength, unit/10], [radialLength, unit/10], [-radialLength * 0.7, -radialLength * 0.5], [radialLength * 0.7, -radialLength * 0.5]].forEach(([dx, dy]) => {
-            gl(cx, base, cx + dx, base + dy, 'rgba(57,255,126,0.7)', 2.5, 8);
-            nd(cx + dx, base + dy, '#39ff7e', fs(4));
-        });
-        
-        dim(cx + unit/1.8, base, cx + unit/1.8, base - armLength, fmt(r.arm), unit/8, 0);
-        glb(cx, base + unit/1.5, 'radials x4 (' + fmt(r.radial) + ')', 'center', '#39ff7e', fs(10));
-        wv(cx, base - armLength - unit/8, 'v');
-        lb(cx, H - fs(16), 'Ground Plane: radials แนวนอน 90° เพื่อ Impedance ~50Ω', 'center', 'rgba(184,204,222,0.7)', fs(10));
-// -------------------------------------------------------------------
-// ส่วนที่ 14 (แก้ไข): drawDiagram() (Responsive Diagrams 5-8)
-// -------------------------------------------------------------------
-    } else if (atype === 'jpole') {
-        const totalHeight = AP * 2;
-        const h_long = totalHeight * 0.75;
-        const h_short = totalHeight * 0.25;
-        const gap = unit * 0.15;
-        const x_sep = unit * 0.5;
-        const x0 = cx - x_sep / 2;
-        const x1 = cx + x_sep / 2;
-        const top = cy - totalHeight / 2;
-        const bot_short = top + h_long;
-        const bot_long = top + totalHeight;
+  }else if(atype==='yagi3'||atype==='yagi5'){
+    const dirs=atype==='yagi5'?[r.d1,r.d2]:[r.dir];
+    const sc=AP/(r.driv/2)*0.9,rL=(r.refl/2)*sc,dL=(r.driv/2)*sc;
+    const by=cy;
+    const refX=cx-(r.srd/r.driv*2)*dL*1.3-dL*0.8,driX=cx;
+    const dirXs=dirs.map((_,i)=>cx+(r.sdd/r.driv*2)*dL*(i+1)*1.3+dL*(i+1)*0.5);
+    const lastX=dirXs[dirXs.length-1];
+    gl(refX-12,by,lastX+dL*0.3+12,by,'rgba(140,170,210,0.45)',4,4);
+    gl(refX,by-rL,refX,by+rL,'#ff6b35',3.5,12);nd(refX,by-rL,'#ff6b35',4);nd(refX,by+rL,'#ff6b35',4);
+    glb(refX,by+rL+20,'Reflector','center','#ff6b35',9);
+    dim(refX-22,by,refX-22,by-rL,fmt(r.refl/2),-8,0);dim(refX-22,by,refX-22,by+rL,fmt(r.refl/2),-8,0);
+    gl(driX,by-dL,driX,by+dL,'#00d4ff',4,16);nd(driX,by-dL,'#00d4ff',5);nd(driX,by+dL,'#00d4ff',5);nd(driX,by,'#fff',4);SMA(driX-8,by,Math.PI);glb(driX,by+dL+20,'Driven','center','#00d4ff',9);
+    dirXs.forEach((dx,i)=>{const dl=(dirs[i]/2)*sc;gl(dx,by-dl,dx,by+dl,'#39ff7e',3.5,12);nd(dx,by-dl,'#39ff7e',4);nd(dx,by+dl,'#39ff7e',4);glb(dx,by+dl+20,'Dir'+(i+1),'center','#39ff7e',9);});
+    for(let i=1;i<=4;i++){const ri=22+i*20,a2=0.12-i*0.025;ctx.save();ctx.strokeStyle='rgba(57,255,126,'+a2+')';ctx.lineWidth=1;ctx.beginPath();ctx.arc(lastX,by,ri,-Math.PI*.35,Math.PI*.35,false);ctx.stroke();ctx.restore();}
+    ctx.save();ctx.fillStyle='rgba(57,255,126,0.5)';ctx.shadowColor='#39ff7e';ctx.shadowBlur=8;ctx.font='bold 14px monospace';ctx.fillText('-> signal',lastX+AP*.3,by+5);ctx.restore();
+    lb(cx,H-16,'Yagi: Director ชี้ไปหาแหล่งสัญญาณ');
 
-        gl(x1, top, x1, bot_long, '#00d4ff', 4, 16); // Long element
-        gl(x0, bot_short, x0, bot_long, '#39ff7e', 4, 14); // Short element
-        gl(x0, bot_long, x1, bot_long, '#39ff7e', 3, 8); // Bottom bar
+  }else if(atype==='moxon'){
+    const{A,B,C}=r;
+    const sc=Math.min(AP*0.9/B,AP*1.2/A);
+    const aPx=A*sc,bPx=B*sc,cPx=C*sc;
+    gl(cx-aPx,cy-bPx,cx+aPx,cy-bPx,'#00d4ff',3.5,14);
+    gl(cx-aPx,cy-bPx,cx-aPx,cy,'#00d4ff',3,10);
+    gl(cx+aPx,cy-bPx,cx+aPx,cy,'#00d4ff',3,10);
+    gl(cx-aPx,cy+cPx,cx+aPx,cy+cPx,'#39ff7e',3.5,12);
+    gl(cx-aPx,cy,cx-aPx,cy+cPx,'#39ff7e',2.5,8);
+    gl(cx+aPx,cy,cx+aPx,cy+cPx,'#39ff7e',2.5,8);
+    ctx.save();ctx.strokeStyle='rgba(255,209,102,.6)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(cx-aPx-14,cy);ctx.lineTo(cx-aPx+14,cy+cPx);ctx.stroke();ctx.restore();
+    ctx.save();ctx.strokeStyle='rgba(255,209,102,.6)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(cx+aPx-14,cy);ctx.lineTo(cx+aPx+14,cy+cPx);ctx.stroke();ctx.restore();
+    nd(cx,cy-bPx,'#fff',5);SMA(cx,cy-bPx-8,-Math.PI/2);
+    nd(cx-aPx,cy-bPx,'#00d4ff',4);nd(cx+aPx,cy-bPx,'#00d4ff',4);
+    nd(cx-aPx,cy+cPx,'#39ff7e',4);nd(cx+aPx,cy+cPx,'#39ff7e',4);
+    for(let i=1;i<=4;i++){const ri=18+i*18,a2=0.1-i*0.02;ctx.save();ctx.strokeStyle='rgba(57,255,126,'+a2+')';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy-bPx-8,ri,-Math.PI*.4,Math.PI*.4,false);ctx.stroke();ctx.restore();}
+    dim(cx-aPx,cy-bPx-18,cx+aPx,cy-bPx-18,fmt(A*2),0,-14);
+    glb(cx,cy-bPx-32,'Front (feed)','center','#00d4ff',9);glb(cx,cy+cPx+16,'Rear (reflector)','center','#39ff7e',9);
+    lb(cx,H-16,'Moxon: Front (feed) ชี้ไปหาสัญญาณ | F/B > 30 dB');
 
-        const feed_y = bot_short - gap;
-        SMA(x0 - fs(6), feed_y, Math.PI);
-        lb(x0 - unit/3, feed_y, 'feed', 'right');
+  }else if(atype==='turnstile'){
+    const a2=AP*0.92;
+    gl(cx-a2,cy,cx+a2,cy,'#00d4ff',4,16);gl(cx-a2-14,cy-8,cx-a2+14,cy+8,'#00d4ff',3,10);gl(cx+a2-14,cy-8,cx+a2+14,cy+8,'#00d4ff',3,10);
+    gl(cx,cy-a2,cx,cy+a2,'#39ff7e',4,14);gl(cx-8,cy-a2-8,cx+8,cy-a2+8,'#39ff7e',3,8);gl(cx-8,cy+a2-8,cx+8,cy+a2+8,'#39ff7e',3,8);
+    nd(cx-a2,cy,'#00d4ff',4);nd(cx+a2,cy,'#00d4ff',4);nd(cx,cy-a2,'#39ff7e',4);nd(cx,cy+a2,'#39ff7e',4);nd(cx,cy,'#fff',5);
+    SMA(cx,cy+10,Math.PI/2);
+    const px=cx+a2+20;
+    gl(px,cy,px,cy+AP*.4,'rgba(255,209,102,.8)',2.5,10);glb(px+8,cy+AP*.2,'phasing coax 1/4 lam','left','#ffd166',9);
+    dim(cx-a2,cy-18,cx+a2,cy-18,fmt(r.arm*2),0,-12);dim(cx+18,cy-a2,cx+18,cy+a2,fmt(r.arm*2),36,0);
+    for(let i=1;i<=3;i++){ctx.save();ctx.strokeStyle='rgba(199,125,255,'+(0.07+i*0.04)+')';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,20+i*22,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    glb(cx,cy-a2-22,'Horizontal Dipole (0 deg)','center','#00d4ff',9);
+    glb(cx+a2+16,cy,'Vertical (90 deg)','left','#39ff7e',9);
+    lb(cx,H-16,'Turnstile: ชี้ขึ้นฟ้า | Circular Polarization | รับดาวเทียม LEO');
 
-        nd(x1, top, '#00d4ff');
-        wv(x1, top - unit/8, 'v');
-        dim(x1 + unit/2, top, x1 + unit/2, bot_long, fmt(r.long), unit/8, 0);
-        dim(x0 - unit/2, bot_short, x0 - unit/2, bot_long, fmt(r.short), -unit/8, 0);
-        lb(cx, H - fs(16), 'J-Pole: ไม่ต้องใช้ Ground Plane | Gain ดี', 'center', 'rgba(184,204,222,0.7)', fs(10));
+  }else if(atype==='qfh'){
+    const{dia,height}=r;
+    const sc=Math.min(AP*1.6/height,AP*0.85/(dia/2));
+    const dPx=(dia/2)*sc,hPx=height*0.42*sc;
+    const baseY=cy+hPx;
+    ctx.save();ctx.strokeStyle='rgba(28,52,80,0.9)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+    ctx.beginPath();ctx.ellipse(cx,baseY,dPx,dPx*.28,0,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.ellipse(cx,baseY-hPx,dPx,dPx*.28,0,0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+    gl(cx-dPx,baseY-5,cx-dPx,baseY-hPx+5,'rgba(28,52,80,0.4)',1,0);
+    gl(cx+dPx,baseY-5,cx+dPx,baseY-hPx+5,'rgba(28,52,80,0.4)',1,0);
+    const dH=(col,ph)=>{const S=60;ctx.save();ctx.shadowColor=col;ctx.shadowBlur=10;ctx.strokeStyle=col;ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<=S;i++){const t=i/S,y=baseY-t*hPx,a3=t*Math.PI*2+ph,x=cx+Math.cos(a3)*dPx;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.beginPath();for(let i=0;i<=S;i++){const t=i/S,y=baseY-t*hPx,a3=t*Math.PI*2+ph+Math.PI,x=cx+Math.cos(a3)*dPx;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.restore();};
+    dH('#00d4ff',0);dH('#ff6b35',Math.PI*.5);
+    nd(cx,baseY,'#fff',5);nd(cx,baseY-hPx,'#fff',5);SMA(cx,baseY+8,-Math.PI/2);
+    for(let i=1;i<=3;i++){ctx.save();ctx.globalAlpha=.05+i*.04;ctx.strokeStyle='rgba(199,125,255,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy-30,i*26,0,Math.PI*2);ctx.stroke();ctx.restore();}
+    dim(cx+dPx+18,baseY,cx+dPx+18,baseY-hPx,fmt(height*.42),10,0);
+    glb(cx+dPx+40,cy-20,'Loop A (0 deg)','left','#00d4ff',9);glb(cx+dPx+40,cy-4,'Loop B (90 deg)','left','#ff6b35',9);
+    lb(cx,H-16,'QFH: ชี้ขึ้นฟ้า | RHCP Circular Pol | ดีที่สุดสำหรับดาวเทียม');
 
-    } else if (atype === 'slimjim') {
-        const totalHeight = AP * 1.8;
-        const x_sep = unit * 0.3;
-        const x0 = cx - x_sep / 2;
-        const x1 = cx + x_sep / 2;
-        const top = cy - totalHeight / 2;
-        const fold = cy + totalHeight / 2;
-        const gap_pos = top + totalHeight * 0.25;
+  }else if(atype==='longwire'){
+    const wy=cy-20,wireLen=Math.min(W-80,W*0.78);
+    gl(40,wy-30,40,wy+50,'rgba(140,160,180,0.5)',4,4);gl(40+wireLen,wy-30,40+wireLen,wy+50,'rgba(140,160,180,0.5)',4,4);
+    ctx.save();ctx.fillStyle='rgba(80,100,130,0.6)';ctx.fillRect(30,wy+40,22,20);ctx.fillRect(30+wireLen,wy+40,22,20);ctx.restore();
+    gl(40,wy,40+wireLen,wy,'#00d4ff',3,12);nd(40,wy,'rgba(200,200,200,0.7)',4);nd(40+wireLen,wy,'rgba(200,200,200,0.7)',4);
+    SMA(40,wy+15,Math.PI/2);gl(40,wy+60,40,cy+80,'rgba(90,140,190,0.4)',1.5,0);
+    ctx.save();ctx.strokeStyle='rgba(90,140,190,0.4)';ctx.lineWidth=1.5;for(let i=0;i<4;i++){ctx.beginPath();ctx.moveTo(28+i*8,cy+80);ctx.lineTo(28+i*8+12,cy+90);ctx.stroke();}ctx.restore();
+    ctx.save();ctx.strokeStyle='rgba(255,209,102,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(40,wy,8,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.arc(40+wireLen,wy,8,0,Math.PI*2);ctx.stroke();ctx.restore();
+    glb(40+wireLen/2,wy-18,fmt(r.rec)+' ขั้นต่ำ','center','#00d4ff',9);lb(40+wireLen/2,wy+30,'insulators ที่ปลายทั้งสอง','center');
+    ctx.save();ctx.fillStyle='rgba(255,107,53,0.9)';ctx.font='bold 10px Space Mono,monospace';ctx.textAlign='center';ctx.fillText('!! เปิด Direct Sampling Q Branch ใน SDR++ !!',cx,H-28);ctx.restore();
+    lb(cx,H-14,'HF 1-30 MHz | ยิ่งยาวยิ่งดี | ขึงแนวนอนให้สูง');
 
-        gl(x0, fold, x0, top, '#00d4ff', 4, 16);
-        gl(x0, top, x1, top, '#00d4ff', 3, 10);
-        gl(x1, top, x1, fold, '#39ff7e', 4, 14);
-        
-        ctx.save(); ctx.strokeStyle = 'rgba(255,209,102,.8)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(x1 - unit/5, gap_pos); ctx.lineTo(x1 + unit/5, gap_pos); ctx.stroke(); ctx.restore();
-        SMA(x1 + fs(10), gap_pos + unit/10, 0);
-        
-        nd(x0, top, '#00d4ff', fs(4)); nd(x1, top, '#00d4ff', fs(4));
-        wv(cx, top - unit/8, 'v');
-        dim(x0 - unit/2, top, x0 - unit/2, fold, fmt(r.total), -unit/8, 0);
-        glb(cx, top - unit/4, 'Short circuit', 'center', 'rgba(255,100,100,.8)', fs(9));
-        lb(x1 + unit/2.5, gap_pos, 'feed+gap', 'left');
-        lb(cx, H - fs(16), 'Slim Jim: Low-angle radiation | ทำจาก 300 ohm ribbon cable', 'center', 'rgba(184,204,222,0.7)', fs(10));
+  }else if(atype==='discone'){
+    const coneH=AP,discR=AP*0.52,nCone=8;
+    gl(cx-discR,cy,cx+discR,cy,'#00d4ff',3,12);
+    for(let i=0;i<nCone;i++){const ang=(i/nCone)*Math.PI*2,ex=cx+Math.cos(ang)*discR*1.1,ey=cy+coneH*0.8;gl(cx,cy+8,ex,ey,'#39ff7e',2.5,8);nd(ex,ey,'#39ff7e',3);}
+    nd(cx,cy,'#fff',5);SMA(cx,cy+coneH*.8+8,-Math.PI/2);
+    ctx.save();ctx.strokeStyle='rgba(0,212,255,.4)';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(cx,cy,discR,discR*.2,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+    dim(cx,cy-14,cx+discR,cy-14,fmt(r.disc),0,-12);dim(cx+discR+16,cy,cx+discR*1.1+16,cy+coneH*.8,fmt(r.cone),12,0);
+    glb(cx,cy-38,'Disc (จาน)','center','#00d4ff',9);glb(cx,cy+coneH*.9+14,'Cone x8','center','#39ff7e',9);
+    ctx.save();ctx.fillStyle='rgba(0,212,255,.06)';ctx.fillRect(18,H-46,W-36,24);ctx.restore();
+    ctx.save();ctx.font='9px Space Mono,monospace';ctx.fillStyle='rgba(0,212,255,.6)';ctx.textAlign='center';ctx.fillText('COVERAGE: FM 88 ---- VHF ---- UHF ---- 1300+ MHz',cx,H-30);ctx.restore();
+    lb(cx,H-14,'Discone: Wideband ทุกย่าน FM-UHF ไม่ต้องเปลี่ยนเสา');
+  }
+}
 
-    } else if (atype === 'collinear') {
-        const secHeight = AP * 0.9;
-        const s1t = cy - secHeight, s1b = cy, s2b = cy + secHeight;
-        const px = cx + unit * 0.4;
+// ── Banner renderer ──
+function updateBanner(isManual){
+  const banner=document.getElementById('autoBanner');
+  const ant=ANT[atype];
+  if(isManual){
+    banner.style.display='flex';
+    banner.className='auto-banner manual';
+    banner.innerHTML=
+      '<span class="b-dot"></span>'+
+      '<span>เลือกเองแล้ว: <strong>'+ant.name+'</strong></span>'+
+      '<button class="b-reset" onclick="resetToAuto()">&#x21BA; ให้ระบบเลือกให้</button>';
+  } else {
+    banner.style.display='flex';
+    banner.className='auto-banner';
+    banner.innerHTML=
+      '<span class="b-dot"></span>'+
+      '<span>เลือกให้อัตโนมัติ: <strong>'+ant.name+'</strong></span>'+
+      '<span style="margin-left:auto;font-size:9px;opacity:.5;">คลิกเสาอื่นเพื่อเปลี่ยนเอง</span>';
+  }
+}
 
-        gl(cx, s1t, cx, s1b, '#00d4ff', 4, 16);
-        gl(cx, s1b, cx, s2b, '#39ff7e', 4, 16);
-        gl(px, s1b, px, s1b + secHeight * 0.5, 'rgba(255,209,102,0.7)', 3, 10);
-        glb(px + fs(5), s1b + secHeight * 0.25, 'phasing\nstub', 'left', '#ffd166', fs(9));
-        
-        nd(cx, s1t, '#00d4ff');
-        nd(cx, s1b, '#fff', fs(5));
-        nd(cx, s2b, '#39ff7e');
-        SMA(cx - fs(8), s2b, Math.PI);
-        
-        wv(cx, s1t - unit/8, 'v');
-        dim(cx - unit/2, s1t, cx - unit/2, s1b, fmt(r.section), -unit/8, 0);
-        dim(cx - unit/2, s1b, cx - unit/2, s2b, fmt(r.section), -unit/8, 0);
-        glb(cx - fs(5), (s1t + s1b) / 2, 'Sec 1', 'right', '#00d4ff', fs(9));
-        glb(cx - fs(5), (s1b + s2b) / 2, 'Sec 2', 'right', '#39ff7e', fs(9));
-        lb(cx, H - fs(16), 'Collinear: ทุก 2 section +3 dBi | เหมาะสำหรับ ADS-B 1090', 'center', 'rgba(184,204,222,0.7)', fs(10));
-
-    } else if (atype === 'fiveEighths') {
-        const armLength = AP * 1.4;
-        const base = cy + unit * 0.8;
-        gl(cx, base, cx, base - armLength, '#00d4ff', 4, 16);
-        nd(cx, base - armLength, '#00d4ff');
-        nd(cx, base, '#fff', fs(4));
-        SMA(cx, base + fs(2), -Math.PI / 2);
-        
-        // Matching Coil
-        for (let i = 0; i < 5; i++) { const wy = base - unit/8 - i * unit/10; ctx.save(); ctx.strokeStyle = 'rgba(255,209,102,.5)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(cx, wy, unit/8, unit/20, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
-        glb(cx + unit/3, base - unit/3, 'matching\ncoil', 'left', '#ffd166', fs(9));
-        
-        wv(cx, base - armLength - unit/8, 'v');
-        dim(cx + unit/2, base, cx + unit/2, base - armLength, fmt(r.arm), unit/8, 0);
-        lb(cx, H - fs(16), '5/8 Lambda: Gain สูงกว่า 1/4λ | ต้องมี matching coil', 'center', 'rgba(184,204,222,0.7)', fs(10));
-// -------------------------------------------------------------------
-// ส่วนที่ 15 (แก้ไข): drawDiagram() (Responsive Diagrams 9-13)
-// -------------------------------------------------------------------
-    } else if (atype === 'yagi3' || atype === 'yagi5') {
-        const boomLength = W * 0.7;
-        const y_center = cy;
-        const element_scale = Math.min(unit * 1.5, W * 0.25);
-
-        const driven_len = element_scale;
-        const refl_len = driven_len * (r.refl / r.driv);
-        const dir_lens = (atype === 'yagi5') ? [driven_len * (r.d1 / r.driv), driven_len * (r.d2 / r.driv)] : [driven_len * (r.dir / r.driv)];
-        
-        const spacing_scale = boomLength / 4;
-        const ref_x = cx - spacing_scale * 1.5;
-        const drv_x = cx - spacing_scale * 0.5;
-        const dir_xs = dir_lens.map((_, i) => drv_x + spacing_scale * (i + 1));
-
-        // Boom
-        gl(ref_x - unit/3, y_center, dir_xs[dir_xs.length - 1] + unit/3, y_center, 'rgba(140,170,210,0.45)', Math.max(3, unit/20), 4);
-
-        // Reflector
-        gl(ref_x, y_center - refl_len / 2, ref_x, y_center + refl_len / 2, '#ff6b35', 3.5, 12);
-        glb(ref_x, y_center + refl_len / 2 + fs(15), 'Reflector', 'center', '#ff6b35', fs(10));
-
-        // Driven
-        gl(drv_x, y_center - driven_len / 2, drv_x, y_center + driven_len / 2, '#00d4ff', 4, 16);
-        SMA(drv_x - fs(8), y_center, Math.PI);
-        glb(drv_x, y_center + driven_len / 2 + fs(15), 'Driven', 'center', '#00d4ff', fs(10));
-
-        // Directors
-        dir_xs.forEach((dx, i) => {
-            const len = dir_lens[i];
-            gl(dx, y_center - len / 2, dx, y_center + len / 2, '#39ff7e', 3.5, 12);
-            glb(dx, y_center + len / 2 + fs(15), `Dir ${i+1}`, 'center', '#39ff7e', fs(10));
-        });
-
-        const signal_x = dir_xs[dir_xs.length - 1] + unit/2;
-        for(let i=1; i<=3; i++){ const ri=unit/4+i*unit/5, a2=0.12-i*0.025; ctx.save(); ctx.strokeStyle='rgba(57,255,126,'+a2+')'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(signal_x, y_center, ri, -Math.PI*.35, Math.PI*.35, false); ctx.stroke(); ctx.restore(); }
-        glb(signal_x + unit/1.5, y_center, '->\nsignal', 'center', '#39ff7e', fs(12));
-        lb(cx, H - fs(16), 'Yagi: หันด้าน Director (ด้านที่สั้นกว่า) ไปหาแหล่งสัญญาณ', 'center', 'rgba(184,204,222,0.7)', fs(10));
-
-    } else if (atype === 'moxon') {
-        const scale = Math.min(W * 0.8, H * 0.6) / (r.A * 2);
-        const A = r.A * scale, B = r.B * scale, C = r.C * scale;
-        const y_front = cy - B/2, y_rear = cy + B/2;
-
-        // Front element (Driven)
-        gl(cx - A, y_front, cx + A, y_front, '#00d4ff', 3.5, 14);
-        gl(cx - A, y_front, cx - A, y_front + B - C, '#00d4ff', 3, 10);
-        gl(cx + A, y_front, cx + A, y_front + B - C, '#00d4ff', 3, 10);
-        SMA(cx, y_front - fs(8), -Math.PI / 2);
-        
-        // Rear element (Reflector)
-        gl(cx - A, y_rear, cx + A, y_rear, '#39ff7e', 3.5, 12);
-        gl(cx - A, y_rear, cx - A, y_rear - B + C, '#39ff7e', 2.5, 8);
-        gl(cx + A, y_rear, cx + A, y_rear - B + C, '#39ff7e', 2.5, 8);
-
-        dim(cx - A, y_front - unit/4, cx + A, y_front - unit/4, fmt(r.A * 2), 0, -fs(12));
-        dim(cx - A - unit/4, y_front, cx - A - unit/4, y_rear, fmt(r.B), -unit/8, 0);
-        glb(cx, y_front - unit/2, 'Front (feed)', 'center', '#00d4ff', fs(10));
-        glb(cx, y_rear + unit/3, 'Rear (reflector)', 'center', '#39ff7e', fs(10));
-        lb(cx, H - fs(16), 'Moxon: ขนาดกระทัดรัด | Front-to-Back ratio ดีเยี่ยม', 'center', 'rgba(184,204,222,0.7)', fs(10));
-
-    } else if (atype === 'turnstile') {
-        const arm = AP;
-        gl(cx - arm, cy, cx + arm, cy, '#00d4ff', 4, 16); // Horizontal
-        gl(cx, cy - arm, cx, cy + arm, '#39ff7e', 4, 14); // Vertical
-        nd(cx, cy, '#fff', fs(5));
-        SMA(cx, cy + fs(10), Math.PI / 2);
-
-        const px = cx + arm + unit/4;
-        gl(px, cy, px, cy + arm * 0.5, 'rgba(255,209,102,.8)', 2.5, 10);
-        glb(px + fs(8), cy + arm * 0.25, 'phasing\ncoax', 'left', '#ffd166', fs(9));
-
-        dim(cx - arm, cy - unit/4, cx + arm, cy - unit/4, fmt(r.arm * 2), 0, -fs(12));
-        dim(cx + unit/4, cy - arm, cx + unit/4, cy + arm, fmt(r.arm * 2), unit/8, 0);
-        for (let i = 1; i <= 3; i++) { ctx.save(); ctx.strokeStyle = 'rgba(199,125,255,' + (0.07 + i * 0.04) + ')'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, unit/3 + i * unit/4, 0, Math.PI * 2); ctx.stroke(); ctx.restore(); }
-        lb(cx, H - fs(16), 'Turnstile: ชี้ขึ้นฟ้า | Circular Polarization สำหรับดาวเทียม', 'center', 'rgba(184,204,222,0.7)', fs(10));
-
-    } else if (atype === 'qfh') {
-        const dPx = unit * 1.2, hPx = unit * 2.5;
-        const baseY = cy + hPx / 2;
-        
-        const dH = (col, ph) => { const S = 60; ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = 10; ctx.strokeStyle = col; ctx.lineWidth = Math.max(2, unit/25); ctx.beginPath(); for (let i = 0; i <= S; i++) { const t = i / S, y = baseY - t * hPx, a3 = t * Math.PI * 1.5 + ph, x = cx + Math.cos(a3) * dPx * (1 - 0.2 * Math.sin(t * Math.PI)); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); ctx.restore(); };
-        dH('#00d4ff', 0);
-        dH('#ff6b35', Math.PI / 2);
-        
-        nd(cx, baseY, '#fff', fs(5));
-        SMA(cx, baseY + fs(8), -Math.PI / 2);
-        
-        dim(cx + dPx + unit/4, baseY, cx + dPx + unit/4, baseY - hPx, fmt(r.height), unit/8, 0);
-        dim(cx - dPx - unit/4, baseY, cx + dPx + unit/4, baseY, fmt(r.dia), 0, fs(12));
-        lb(cx, H - fs(16), 'QFH: ชี้ขึ้นฟ้า | RHCP Circular Pol | ดีที่สุดสำหรับดาวเทียม', 'center', 'rgba(184,204,222,0.7)', fs(10));
-// -------------------------------------------------------------------
-// ส่วนที่ 16 (แก้ไข): drawDiagram() (Responsive Diagrams 14-15 และการปิดฟังก์ชัน)
-// -------------------------------------------------------------------
-    } else if (atype === 'longwire') {
-        const wy = cy - unit/2;
-        const wireLen = W * 0.8;
-        const x_start = cx - wireLen / 2;
-        const x_end = cx + wireLen / 2;
-
-        gl(x_start, wy, x_end, wy, '#00d4ff', 3, 12);
-        nd(x_start, wy, 'rgba(200,200,200,0.7)', fs(4));
-        nd(x_end, wy, 'rgba(200,200,200,0.7)', fs(4));
-        
-        SMA(x_start, wy + unit/4, Math.PI / 2);
-        gl(x_start, wy + unit/1.5, x_start, cy + unit*1.2, 'rgba(90,140,190,0.4)', 1.5, 0);
-        gnd(x_start - unit/10, cy + unit*1.2 - unit/10);
-
-        glb(cx, wy - unit/3, fmt(r.rec) + ' (ขั้นต่ำ)', 'center', '#00d4ff', fs(10));
-        lb(cx, wy + unit/3, 'ยิ่งยาวยิ่งดีสำหรับย่าน HF', 'center');
-        
-        ctx.save(); ctx.fillStyle = 'rgba(255,107,53,0.9)'; ctx.font = `bold ${fs(10)}px Space Mono,monospace`; ctx.textAlign = 'center'; ctx.fillText('!! ต้องเปิด Direct Sampling (Q Branch) ใน SDR !!', cx, H - fs(28)); ctx.restore();
-        lb(cx, H - fs(14), 'HF 1-30 MHz | ขึงให้สูงและห่างจากสิ่งรบกวน', 'center', 'rgba(184,204,222,0.7)', fs(10));
-
-    } else if (atype === 'discone') {
-        const coneH = AP * 1.2;
-        const discR = AP * 0.9;
-        const nCone = 8;
-        const y_disc = cy - coneH/2;
-        const y_cone_tip = cy + coneH/2;
-
-        // Disc
-        gl(cx - discR, y_disc, cx + discR, y_disc, '#00d4ff', 3, 12);
-        ctx.save(); ctx.strokeStyle = 'rgba(0,212,255,.4)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(cx, y_disc, discR, discR * .2, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
-        
-        // Cone
-        for (let i = 0; i < nCone; i++) {
-            const ang = (i / nCone) * Math.PI * 2;
-            const ex = cx + Math.cos(ang) * discR * 1.1;
-            const ey = y_cone_tip;
-            gl(cx, y_disc + unit/10, ex, ey, '#39ff7e', 2.5, 8);
-            nd(ex, ey, '#39ff7e', fs(3));
-        }
-        
-        nd(cx, y_disc, '#fff', fs(5));
-        SMA(cx, y_cone_tip + fs(8), -Math.PI / 2);
-
-        dim(cx - discR, y_disc - unit/4, cx + discR, y_disc - unit/4, 'Disc: ' + fmt(r.disc), 0, -fs(12));
-        dim(cx + discR*1.1 + unit/4, y_disc, cx + discR*1.1 + unit/4, y_cone_tip, 'Cone: ' + fmt(r.cone), unit/8, 0);
-        
-        ctx.save(); ctx.fillStyle = 'rgba(0,212,255,.06)'; ctx.fillRect(unit/2, H - unit/1.5, W - unit, unit/2); ctx.restore();
-        lb(cx, H - unit/2.5, 'COVERAGE: FM 88 ---- VHF ---- UHF ---- 1300+ MHz', 'center', 'rgba(0,212,255,.6)', fs(9));
-        lb(cx, H - fs(14), 'Discone: Wideband ทุกย่าน ไม่ต้องเปลี่ยนเสา', 'center', 'rgba(184,204,222,0.7)', fs(10));
-    }
+function resetToAuto(){
+  userOverride=false;
+  calc();
 }
 
 // ── Events ──
-document.getElementById('fi').addEventListener('input',calc);
+document.getElementById('fi').addEventListener('input',()=>{
+  userOverride=false; // new frequency input → reset to auto
+  calc();
+});
 document.querySelectorAll('.vbtn').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('.vbtn').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');vf=parseFloat(b.dataset.vf);calc();
 }));
 document.querySelectorAll('.pchip').forEach(c=>c.addEventListener('click',()=>{
+  userOverride=false; // preset tap → auto-select for that frequency
   document.getElementById('fi').value=c.dataset.f;calc();
 }));
 document.querySelectorAll('.tbtn').forEach(b=>b.addEventListener('click',()=>{
-  document.querySelectorAll('.tbtn').forEach(x=>x.classList.remove('on'));
-  b.classList.add('on');atype=b.dataset.type;calc();
+  userOverride=true; // user explicitly picked → manual override
+  document.querySelectorAll('.tbtn').forEach(x=>x.classList.remove('on','auto-on'));
+  b.classList.add('on');
+  atype=b.dataset.type;
+  calc();
 }));
 window.addEventListener('resize',()=>{if(freq>0)calc();});
 </script>
