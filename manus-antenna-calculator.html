@@ -66,7 +66,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 .tcat.sat{color:var(--acc5);border-color:rgba(199,125,255,.25);background:rgba(199,125,255,.07);}
 .tcat.hf{color:var(--acc4);border-color:rgba(255,209,102,.25);background:rgba(255,209,102,.07);}
 .tcat.wide{color:var(--acc3);border-color:rgba(57,255,126,.25);background:rgba(57,255,126,.07);}
-.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin-bottom:16px;}
+	.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:16px;}
 .rbox{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;}
 .rbox.pri{border-color:var(--acc);background:rgba(0,212,255,.05);}
 .rlbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--txtd);text-transform:uppercase;margin-bottom:5px;}
@@ -104,8 +104,8 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 .ai-title{font-family:var(--mono);font-size:13px;color:var(--txtb);font-weight:700;}
 .ai-sub{font-size:11px;color:var(--txtd);margin-top:2px;}
 .ai-body{padding:18px 20px;}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
-.stat-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 13px;}
+	.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:18px;}
+	.stat-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 13px;min-width:0;overflow:hidden;}
 .stat-lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--txtd);text-transform:uppercase;margin-bottom:4px;}
 .stat-val{font-family:var(--mono);font-size:13px;font-weight:700;line-height:1.3;}
 .stat-val.c-acc{color:var(--acc);}
@@ -122,7 +122,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 .ai-p strong{color:var(--txtb);}
 .ai-p .hi{color:var(--acc);font-family:var(--mono);font-size:11px;}
 .ai-p .warn{color:var(--acc2);}
-.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+	.pros-cons{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:10px;}
 .pc{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 13px;}
 .pc-h{font-family:var(--mono);font-size:9px;letter-spacing:1px;margin-bottom:8px;}
 .pc-h.pro{color:var(--acc3);}
@@ -271,7 +271,11 @@ const C = 299.792458;
 let freq = 0, vf = 0.95, atype = 'dipole';
 
 function lam(f, v) { return (C / f) * (v !== undefined ? v : vf); }
-function fmt(cm) { if (cm >= 100) return (cm / 100).toFixed(3) + ' m'; if (cm >= 10) return cm.toFixed(1) + ' cm'; return cm.toFixed(2) + ' cm'; }
+function fmt(cm) { 
+    if (cm >= 100) return (cm / 100).toFixed(2) + ' m'; 
+    if (cm >= 10) return cm.toFixed(1) + ' cm'; 
+    return cm.toFixed(2) + ' cm'; 
+}
 function fmtV(cm) { return cm >= 100 ? (cm / 100).toFixed(3) : cm.toFixed(1); }
 function fmtU(cm) { return cm >= 100 ? 'm' : 'cm'; }
 // -------------------------------------------------------------------
@@ -753,11 +757,26 @@ function drawDiagram(ant, r) {
     }
 
     // --- Helper Functions (with Responsive Font Size) ---
-    const fs = (base) => Math.max(base * 0.8, Math.min(base, unit / 5)); // Responsive font size
+    const fs = (base) => {
+        const scaled = base * (W / 600);
+        return Math.max(base * 0.7, Math.min(base * 1.2, scaled));
+    };
     
     const gl = (x1, y1, x2, y2, c, w, b) => { ctx.save(); ctx.shadowColor = c; ctx.shadowBlur = b || 12; ctx.strokeStyle = c; ctx.lineWidth = w || Math.max(1.5, unit/30); ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.restore(); };
     const nd = (x, y, c, r2) => { ctx.save(); ctx.beginPath(); ctx.arc(x, y, r2 || Math.max(2, unit/15), 0, Math.PI * 2); ctx.fillStyle = c; ctx.shadowColor = c; ctx.shadowBlur = 10; ctx.fill(); ctx.restore(); };
-    const lb = (x, y, t, a, c, fsize) => { ctx.save(); ctx.font = `${fsize || fs(10)}px Space Mono,monospace`; ctx.fillStyle = c || 'rgba(184,204,222,0.7)'; ctx.textAlign = a || 'center'; ctx.fillText(t, x, y); ctx.restore(); };
+    const lb = (x, y, t, a, c, fsize) => { 
+        ctx.save(); 
+        const finalSize = fsize || fs(10);
+        ctx.font = `${finalSize}px Space Mono,monospace`; 
+        ctx.fillStyle = c || 'rgba(184,204,222,0.7)'; 
+        ctx.textAlign = a || 'center'; 
+        
+        // ป้องกันข้อความซ้อนทับกันด้วยการล้างพื้นหลังเล็กน้อย (optional)
+        // ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 4;
+        
+        ctx.fillText(t, x, y); 
+        ctx.restore(); 
+    };
     const glb = (x, y, t, a, c, fsize) => { ctx.save(); ctx.font = `bold ${fsize || fs(11)}px Space Mono,monospace`; ctx.fillStyle = c || '#00d4ff'; ctx.shadowColor = c || '#00d4ff'; ctx.shadowBlur = 6; ctx.textAlign = a || 'center'; ctx.fillText(t, x, y); ctx.restore(); };
     const SMA = (x, y, ang) => { const s = unit/10; ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.fillStyle = '#c8a050'; ctx.shadowColor = '#c8a050'; ctx.shadowBlur = 5; ctx.fillRect(-s*1.2, -s*0.5, s*2.4, s); ctx.fillStyle = '#ffe080'; ctx.fillRect(s*1.2, -s*0.2, s, s*0.4); ctx.restore(); };
     const dim = (x1, y1, x2, y2, t, ox, oy) => { ctx.save(); ctx.strokeStyle = 'rgba(0,212,255,0.45)'; ctx.fillStyle = 'rgba(0,212,255,0.45)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.setLineDash([]); const ang = Math.atan2(y2 - y1, x2 - x1); [[x1, y1], [x2, y2]].forEach(([ax, ay]) => { ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + Math.cos(ang + 2.5) * 6, ay + Math.sin(ang + 2.5) * 6); ctx.lineTo(ax + Math.cos(ang - 2.5) * 6, ay + Math.sin(ang - 2.5) * 6); ctx.closePath(); ctx.fill(); }); ctx.font = `${fs(9)}px Space Mono,monospace`; ctx.fillStyle = '#00d4ff'; ctx.textAlign = 'center'; ctx.fillText(t, (x1 + x2) / 2 + (ox || 0), (y1 + y2) / 2 + (oy || -fs(12))); ctx.restore(); };
@@ -1006,19 +1025,55 @@ function drawDiagram(ant, r) {
         lb(cx, H - fs(16), 'Turnstile: ชี้ขึ้นฟ้า | Circular Polarization สำหรับดาวเทียม', 'center', 'rgba(184,204,222,0.7)', fs(10));
 
     } else if (atype === 'qfh') {
-        const dPx = unit * 1.2, hPx = unit * 2.5;
-        const baseY = cy + hPx / 2;
+        const dPx = unit * 0.8, hPx = unit * 2.2;
+        const topY = cy - hPx / 2, botY = cy + hPx / 2;
         
-        const dH = (col, ph) => { const S = 60; ctx.save(); ctx.shadowColor = col; ctx.shadowBlur = 10; ctx.strokeStyle = col; ctx.lineWidth = Math.max(2, unit/25); ctx.beginPath(); for (let i = 0; i <= S; i++) { const t = i / S, y = baseY - t * hPx, a3 = t * Math.PI * 1.5 + ph, x = cx + Math.cos(a3) * dPx * (1 - 0.2 * Math.sin(t * Math.PI)); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); } ctx.stroke(); ctx.restore(); };
-        dH('#00d4ff', 0);
-        dH('#ff6b35', Math.PI / 2);
+        // วาดโครงสร้างแกนกลาง (PVC Pipe)
+        gl(cx, topY - 10, cx, botY + 20, 'rgba(255,255,255,0.1)', 8, 0);
         
-        nd(cx, baseY, '#fff', fs(5));
-        SMA(cx, baseY + fs(8), -Math.PI / 2);
+        // ฟังก์ชันวาด Helix Loop (QFH ประกอบด้วย 2 loops ที่มีขนาดต่างกันเล็กน้อย)
+        const drawHelix = (col, ph, twist, wMult, hMult) => {
+            const S = 80;
+            const radius = dPx * wMult;
+            const height = hPx * hMult;
+            const startY = cy + height / 2;
+            
+            ctx.save();
+            ctx.shadowColor = col;
+            ctx.shadowBlur = 8;
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            
+            for (let i = 0; i <= S; i++) {
+                const t = i / S;
+                const y = startY - t * height;
+                const angle = t * Math.PI * twist + ph;
+                const x = cx + Math.cos(angle) * radius;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // วาดจุดเชื่อมต่อที่ด้านบนและด้านล่าง
+            nd(cx + Math.cos(ph) * radius, startY, col, 3);
+            nd(cx + Math.cos(ph + Math.PI * twist) * radius, startY - height, col, 3);
+            
+            ctx.restore();
+        };
+
+        // QFH มี 2 loops: Large Loop และ Small Loop
+        drawHelix('#00d4ff', 0, 0.5, 1.1, 1.0); // Large Loop
+        drawHelix('#39ff7e', Math.PI / 2, 0.5, 0.9, 0.9); // Small Loop
         
-        dim(cx + dPx + unit/4, baseY, cx + dPx + unit/4, baseY - hPx, fmt(r.height), unit/8, 0);
-        dim(cx - dPx - unit/4, baseY, cx + dPx + unit/4, baseY, fmt(r.dia), 0, fs(12));
-        lb(cx, H - fs(16), 'QFH: ชี้ขึ้นฟ้า | RHCP Circular Pol | ดีที่สุดสำหรับดาวเทียม', 'center', 'rgba(184,204,222,0.7)', fs(10));
+        // Feed point ด้านบน
+        nd(cx, topY, '#fff', fs(5));
+        glb(cx, topY - fs(15), 'FEED POINT', 'center', '#fff', fs(9));
+        
+        // Dimensions
+        dim(cx - dPx * 1.2, botY, cx + dPx * 1.2, botY, "Dia: " + fmt(r.dia), 0, fs(15));
+        dim(cx + dPx * 1.5, topY, cx + dPx * 1.5, botY, "H: " + fmt(r.height), 0, 0);
+        
+        lb(cx, H - fs(16), 'QFH: Quadrifilar Helix | RHCP สำหรับดาวเทียม LEO', 'center', 'rgba(184,204,222,0.7)', fs(10));
 // -------------------------------------------------------------------
 // ส่วนที่ 17: drawDiagram() (Diagrams 14-15 และการปิดฟังก์ชัน)
 // -------------------------------------------------------------------
