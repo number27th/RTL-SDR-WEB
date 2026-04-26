@@ -60,6 +60,7 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 .ticon{font-size:20px;margin-bottom:4px;}
 .tname{font-family:var(--mono);font-size:10px;color:var(--txtb);}
 .tsub{font-size:9px;color:var(--txtd);margin-top:2px;}
+.tdiff{font-family:var(--mono);font-size:8px;color:var(--acc4);margin-top:3px;letter-spacing:1px;}
 .tcat{font-size:8px;margin-top:3px;padding:1px 5px;border-radius:3px;display:inline-block;border:1px solid;}
 .tcat.omni{color:var(--acc);border-color:rgba(0,212,255,.25);background:rgba(0,212,255,.07);}
 .tcat.dir{color:var(--acc2);border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.07);}
@@ -194,6 +195,18 @@ input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
   box-shadow:0 0 12px rgba(57,255,126,0.12);
 }
 .tbtn.auto-on::after{content:'AUTO';position:absolute;top:5px;right:5px;font-size:7px;font-family:var(--mono);color:var(--acc3);letter-spacing:1px;}
+.feed-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.feed-box{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.feed-box h4{font-family:var(--mono);font-size:11px;color:var(--acc2);margin-bottom:8px;}
+.feed-box p,.feed-box li{font-size:11px;line-height:1.6;color:var(--txt);}
+.feed-box ul{padding-left:18px;}
+.feed-diag{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:8px;display:flex;justify-content:center;}
+.feed-diag svg{max-height:150px;width:100%;}
+.ready-list{display:grid;grid-template-columns:1fr;gap:8px;}
+.ready-row{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px;}
+.ready-name{color:var(--acc4);font-family:var(--mono);font-size:11px;margin-bottom:4px;}
+.ready-desc{font-size:11px;color:var(--txt);}
+@media(max-width:700px){.feed-grid{grid-template-columns:1fr;}}
 .empty{text-align:center;padding:48px 20px;color:var(--txtd);font-family:var(--mono);font-size:11px;}
 .eicon{font-size:46px;margin-bottom:10px;opacity:.25;}
 footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--txtd);letter-spacing:2px;}
@@ -219,9 +232,14 @@ footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);fon
   <div class="vf-row">
     <span class="vf-lbl">วัสดุ / Velocity Factor:</span>
     <button class="vbtn on" data-vf="0.95">0.95 ลวดทองแดง</button>
+    <button class="vbtn" data-vf="0.98">0.98 ท่อทองแดง</button>
     <button class="vbtn" data-vf="0.96">0.96 ท่ออลูมิเนียม</button>
+    <button class="vbtn" data-vf="0.95">0.95 เหล็ก</button>
+    <button class="vbtn" data-vf="0.93">0.93 ทองเหลือง</button>
+    <button class="vbtn" data-vf="0.95">0.95 ลวดเชื่อม/สแตนเลส</button>
     <button class="vbtn" data-vf="0.82">0.82 Coax RG-58</button>
     <button class="vbtn" data-vf="0.66">0.66 Coax RG-8X</button>
+    <button class="vbtn" data-vf="0.66">0.66 Coax RG-174</button>
     <button class="vbtn" data-vf="1.00">1.00 อากาศ (ทฤษฎี)</button>
   </div>
   <div class="presets">
@@ -259,7 +277,11 @@ footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);fon
     <div class="tbtn" data-type="moxon"><div class="ticon">&#x1F532;</div><div class="tname">Moxon</div><div class="tsub">&#189;&#955; compact</div><div class="tcat dir">Dir</div></div>
     <div class="tbtn" data-type="turnstile"><div class="ticon">&#x271A;</div><div class="tname">Turnstile</div><div class="tsub">Crossed Dipole</div><div class="tcat sat">CP Sat</div></div>
     <div class="tbtn" data-type="qfh"><div class="ticon">&#x1F6F0;&#xFE0F;</div><div class="tname">QFH</div><div class="tsub">Helix CP</div><div class="tcat sat">CP Sat+</div></div>
+    <div class="tbtn" data-type="vdipole"><div class="ticon">&#x1F9ED;</div><div class="tname">V-Dipole</div><div class="tsub">137 MHz Sat</div><div class="tcat sat">CP Sat</div></div>
+    <div class="tbtn" data-type="helical"><div class="ticon">&#x1F300;</div><div class="tname">Helical</div><div class="tsub">Axial mode</div><div class="tcat sat">High Gain</div></div>
     <div class="tbtn" data-type="longwire"><div class="ticon">&#x3030;&#xFE0F;</div><div class="tname">Long Wire</div><div class="tsub">HF Broadband</div><div class="tcat hf">HF</div></div>
+    <div class="tbtn" data-type="efhw"><div class="ticon">&#x1FAA2;</div><div class="tname">EFHW</div><div class="tsub">End-fed &#189;&#955;</div><div class="tcat hf">HF</div></div>
+    <div class="tbtn" data-type="deltaloop"><div class="ticon">&#x1F53A;</div><div class="tname">Delta Loop</div><div class="tsub">1&#955; loop</div><div class="tcat hf">HF</div></div>
     <div class="tbtn" data-type="discone"><div class="ticon">&#x1F302;</div><div class="tname">Discone</div><div class="tsub">Wideband</div><div class="tcat wide">Multi-band</div></div>
   </div>
 </div>
@@ -293,6 +315,14 @@ footer{text-align:center;padding-top:22px;border-top:1px solid var(--border);fon
     <div id="bs"></div>
     <div class="bdg-row" id="br"></div>
   </div>
+  <div class="card" id="feedCard">
+    <div class="clabel">07 — การต่อสาย Coax / Feed Point</div>
+    <div id="feedInfo"></div>
+  </div>
+  <div class="card" id="readyCard">
+    <div class="clabel">08 — เสาสำเร็จรูปแนะนำ</div>
+    <div id="readyInfo"></div>
+  </div>
 </div>
 
 <div class="empty" id="es">
@@ -323,7 +353,7 @@ function autoSelectAntenna(f){
   if(f <= 136) return 'dipole';
 
   // Satellite 137–138 MHz (Meteor-M2) → QFH — ดีที่สุดสำหรับดาวเทียม LEO
-  if(f >= 136 && f <= 138.5) return 'qfh';
+  if(f >= 136 && f <= 138.5) return 'vdipole';
 
   // 2m Ham / APRS / VHF comms (138–175 MHz) → J-Pole — ไม่ต้อง ground plane, gain ดี
   if(f <= 175) return 'jpole';
@@ -427,29 +457,30 @@ jpole:{
   cons:['ต้องตัดท่อน stub ให้ถูกต้อง','การ tune (ปรับ gap) ต้องใช้เวลา','ยาวกว่า Dipole ประมาณ 50%'],
   note:'J-Pole ที่ทำจาก 300Ω twin-lead (TV ribbon cable) ทำง่ายและถูกมาก เรียกว่า slim jim J-pole ความยาวรวมประมาณ ¾λ',
   uses:['APRS 144.39 MHz','VHF สื่อสาร','UHF สื่อสาร','ติดตั้งถาวร'],
-  calc(f){const w=lam(f)*100;return{main:w*3/4,long:w*3/4,short:w/4,gap:2.5,lbl:'ท่อน radiator (¾λ)'};},
+  calc(f){const w=lam(f)*100;const spacing=Math.max(2,(w/100));return{main:w*3/4,long:w*3/4,short:w/4,gap:spacing,bridge:spacing,lbl:'ท่อน radiator (¾λ)'};},
   steps(f,r){return[
     {n:1,t:'<strong>ท่อนยาว (radiator)</strong>: <span class="hi">'+fmt(r.long)+'</span>'},
     {n:2,t:'<strong>ท่อนสั้น (matching stub ¼λ)</strong>: <span class="hi">'+fmt(r.short)+'</span>'},
-    {n:3,t:'ช่องว่างระหว่างท่อน (gap): <span class="hi">~2-3 cm</span> ปรับเพื่อ tune SWR'},
-    {n:4,t:'ต่อสาย coax ที่ <strong>ปลายล่างของท่อนสั้น</strong> ขยับขึ้นลง 3-5 cm เพื่อ fine-tune'}
+    {n:3,t:'ช่องว่างระหว่างท่อน (gap = ระยะโลหะถึงโลหะของท่อนยาวกับท่อนสั้น): <span class="hi">'+fmt(r.gap)+'</span>'},
+    {n:4,t:'สะพานล่าง (shorting bar/U-bend) ต้องเชื่อมท่อนยาว-ท่อนสั้นที่ฐาน ความยาวกายภาพโดยมากใกล้เคียงค่า gap'},
+    {n:5,t:'ต่อ coax ที่ matching section: <strong>Center → ท่อนยาว, Shield → ท่อนสั้น</strong> และเลื่อนจุดป้อนขึ้น/ลงเพื่อหา SWR ต่ำสุด'}
   ];},
   bdg:['bm ✦ ปานกลาง','bi ~50Ω','bd ไม่ต้อง Ground Plane','bi Gain +3 dBd']
 },
 slimjim:{
   name:'Slim Jim',icon:'&#x1F4CF;',imp:50,gain:'3-4 dBd',gainNum:5.5,
   polar:'Omni + Low-angle radiation',bands:'VHF / UHF (144-470 MHz)',diff:2,
-  summary:'J-Pole แบบ folded ½λ ตัว element หักกลับทำให้เสาเพรียวบาง มี Low-angle radiation (คลื่นพุ่งแนวนอน) เหมาะรับสถานีไกลๆ ทำจาก 300Ω ribbon cable ถูกมาก',
+  summary:'Slim Jim (J Integrated Matching) เป็น folded ½λ radiator พร้อม matching stub ¼λ โดยทั่วไปจะมีการ short ที่ด้านบนของส่วนรังสี และ short ที่ฐานของ matching section เหมาะกับ 300/450Ω twin-lead',
   pros:['เพรียวบาง ซ่อนในท่อ PVC ได้สวยงาม','Low-angle radiation ดีกว่า J-Pole ธรรมดา','Gain ดีกว่า Dipole ~3-4 dB','ทำจาก twin-lead cable ราคาถูกมาก'],
   cons:['ความยาวรวมประมาณ ¾λ ยาวกว่า Dipole','ต้องตัดและ tune อย่างระมัดระวัง','ทำยากกว่า J-Pole ธรรมดาเล็กน้อย'],
   note:'ทำจาก 300Ω ribbon cable ยาวประมาณ ¾λ พับกลับที่ปลาย ทำได้ง่ายราคาถูกมาก เหมาะสำหรับซ่อนในท่อ PVC ใช้งานกลางแจ้งระยะยาว',
   uses:['VHF สื่อสาร','ซ่อนในท่อ PVC','Portable','ติดตั้งระยะยาว'],
   calc(f){const w=lam(f)*100;return{main:w*0.73,total:w*0.73,short:w*0.23,lbl:'ความยาวรวม (total folded)'};},
   steps(f,r){return[
-    {n:1,t:'ตัด 300Ω twin-lead cable ยาว <span class="hi">'+fmt(r.total)+'</span>'},
-    {n:2,t:'ที่ปลายบน: ต่อลวดทั้งสองเส้นเข้าหากัน (short circuit)'},
-    {n:3,t:'วัดจากปลายบนลงมา <span class="hi">'+fmt(r.short)+'</span> ตัดลวดด้านในออก เหลือฉนวน — open gap'},
-    {n:4,t:'ต่อสาย coax ต่ำกว่า gap ประมาณ <span class="hi">~1-2 cm</span> ลงมา'}
+    {n:1,t:'ตัด 300Ω/450Ω twin-lead ยาว <span class="hi">'+fmt(r.total)+'</span>'},
+    {n:2,t:'ทำ short ด้านบนเพื่อสร้าง folded ½λ radiator'},
+    {n:3,t:'ทำ matching section ¼λ และ short ที่ฐานของ stub (โครงสร้างช่วงนี้ต้องต่อถึงกัน)'},
+    {n:4,t:'เปิดช่อง feed gap ตามสัดส่วนที่คำนวณ แล้วต่อ coax ใต้ gap เล็กน้อย: <strong>Center → แขนยาว, Shield → แขนสั้น</strong>'}
   ];},
   bdg:['bm ✦ ปานกลาง','bi ~50Ω','bd Low-angle gain','bi ทำจาก ribbon cable']
 },
@@ -592,6 +623,74 @@ longwire:{
   ];},
   bdg:['be ✦ ง่ายที่สุด','bh &#x26A0; ต้องเปิด Direct Sampling','bd HF 1-30 MHz','bd ยาวยิ่งดี']
 },
+vdipole:{
+  name:'V-Dipole (Satellite)',icon:'&#x1F9ED;',imp:50,gain:'2-3 dBi',gainNum:2.8,
+  polar:'CP Compatible (V-shape 120°)',bands:'137 MHz Satellite',diff:1,
+  summary:'V-Dipole เป็น Dipole ที่กางมุมประมาณ 120° และติดตั้งแนวนอนเพื่อรับดาวเทียม NOAA/Meteor ได้ดีกว่า Dipole แนวตั้งทั่วไป ทำง่ายและต้นทุนต่ำมาก',
+  pros:['ทำง่ายมาก ใช้วัสดุเหมือน dipole','รับ NOAA/Meteor 137 MHz ได้ดี','Impedance ใกล้ 50Ω','เหมาะสำหรับผู้เริ่มต้นรับดาวเทียม'],
+  cons:['Gain ไม่สูงเท่า QFH/Helical','ต้องติดตั้งแนวนอนและปรับมุมให้ถูก','รองรับย่านแคบ'],
+  note:'ค่าที่ใช้งานจริงนิยมกางมุม 120° และหันเสาขึ้นฟ้าเพื่อให้ polarization match กับสัญญาณดาวเทียม LEO',
+  uses:['Meteor-M2 137.1/137.9','NOAA APT','Portable Sat RX'],
+  calc(f){const a=lam(f)/4*100;return{main:a,arm:a,total:a*2,lbl:'ความยาวต่อแขน'};},
+  steps(f,r){return[
+    {n:1,t:'ตัดแขน 2 ข้าง ข้างละ <span class="hi">'+fmt(r.arm)+'</span>'},
+    {n:2,t:'ต่อ coax ที่จุดกึ่งกลางเหมือน dipole ปกติ'},
+    {n:3,t:'กางมุมแขน <span class="hi">120°</span> และวางแนวนอน'},
+    {n:4,t:'ยกหัวเสาชี้ขึ้นฟ้าเพื่อตามแนวผ่านดาวเทียม'}
+  ];},
+  bdg:['be ✦ ง่ายมาก','bi ~50Ω','bp สำหรับ 137 MHz','bd NOAA/Meteor']
+},
+helical:{
+  name:'Helical (Axial Mode)',icon:'&#x1F300;',imp:140,gain:'9-12 dBi',gainNum:10.5,
+  polar:'RHCP Directional',bands:'Satellite VHF/UHF/L-band',diff:4,
+  summary:'Helical แบบ axial mode ให้ gain สูงและรับ RHCP ได้ดีมาก เหมาะงานดาวเทียมที่ต้องการทิศทางชัดเจน โดยเฉพาะสัญญาณอ่อนหรือ L-band',
+  pros:['Gain สูงกว่ากลุ่ม omni มาก','RHCP ตรงกับดาวเทียมส่วนใหญ่','ทน multipath ได้ดี'],
+  cons:['ต้องคำนวณเส้นผ่านศูนย์กลางและ spacing ให้แม่น','ต้องมี reflector และโครงแข็งแรง','ทิศทางแคบ ต้องชี้เป้า'],
+  note:'สูตรใช้งานจริงนิยม C≈1λ, S≈0.23-0.25λ, จำนวนรอบ 8-12 รอบ และใช้แผ่น reflector อย่างน้อย 0.7D',
+  uses:['LEO weak signal','L-band sat','งานต้องการ gain สูง'],
+  calc(f){const w=lam(f)*100;const circ=w*1.05;const dia=circ/Math.PI;const sp=w*0.25;return{main:dia,dia,sp,lbl:'เส้นผ่านศูนย์กลางขดลวด'};},
+  steps(f,r){return[
+    {n:1,t:'ทำโครงเส้นผ่านศูนย์กลาง <span class="hi">'+fmt(r.dia)+'</span>'},
+    {n:2,t:'ระยะห่างแต่ละรอบ (spacing) <span class="hi">'+fmt(r.sp)+'</span>'},
+    {n:3,t:'พัน 8-12 รอบ และใส่ reflector ด้านท้าย'},
+    {n:4,t:'จูนจุดป้อนให้ match 50Ω ด้วย gamma/quarter-wave match'}
+  ];},
+  bdg:['bh ✦ ยาก','bp RHCP','bi Gain สูง','bd ทิศทางแคบ']
+},
+efhw:{
+  name:'EFHW (End-Fed Half-Wave)',icon:'&#x1FAA2;',imp:2400,gain:'2-3 dBi',gainNum:2.5,
+  polar:'ขึ้นกับการติดตั้ง',bands:'HF Multi-band',diff:2,
+  summary:'EFHW เป็นเสา HF ยอดนิยมเพราะป้อนสัญญาณด้านปลายเสา ใช้หม้อแปลง 49:1 แปลงอิมพีแดนซ์สูงให้เข้ากับสาย 50Ω',
+  pros:['ติดตั้งง่าย ใช้จุดแขวนเดียว','ทำงานได้หลายย่านด้วย harmonic','เสียงรบกวนต่ำกว่า random wire'],
+  cons:['ต้องมีหม้อแปลง 49:1','จุดป้อนมีแรงดันสูง ต้องระวังฉนวน','ต้องจัดการ common-mode choke'],
+  note:'ควรเพิ่ม choke 1:1 ที่โคน feedline เพื่อลดกระแสไหลบนผิวสายและลด noise เข้าระบบรับสัญญาณ',
+  uses:['HF Listening','Portable HF','งานเส้นลวดยาว'],
+  calc(f){const a=lam(f)/2*100;return{main:a,wire:a,lbl:'ความยาวลวดครึ่งคลื่น'};},
+  steps(f,r){return[
+    {n:1,t:'ตัดลวดยาว <span class="hi">'+fmt(r.wire)+'</span>'},
+    {n:2,t:'ต่อปลายลวดเข้าหม้อแปลง <strong>49:1 Unun</strong>'},
+    {n:3,t:'ต่อ coax 50Ω จากหม้อแปลงกลับ SDR'},
+    {n:4,t:'เพิ่ม choke ที่โคนสายและยกเสาให้สูงพอ'}
+  ];},
+  bdg:['bm ✦ ปานกลาง','bh 2400Ω→49:1','bd HF multi-band','bi Portable']
+},
+deltaloop:{
+  name:'Delta Loop',icon:'&#x1F53A;',imp:100,gain:'2-4 dBi',gainNum:3,
+  polar:'ขึ้นกับจุดป้อน/การวาง',bands:'HF / VHF loop',diff:2,
+  summary:'Delta Loop ใช้ลวดเส้นเดียวความยาว 1λ เป็นสามเหลี่ยม ให้ SNR ดีและ noise ต่ำกว่าลวดเส้นเดี่ยวในหลายสภาพแวดล้อม',
+  pros:['noise ต่ำและรับสัญญาณนิ่ง','ทนรบกวนในเมืองดีกว่า long wire','ปรับทิศทางและโพลาไรซ์ได้'],
+  cons:['ต้องใช้พื้นที่แขวน 3 มุม','อิมพีแดนซ์จุดป้อนไม่ตรง 50Ω ตรงๆ','โครงติดตั้งซับซ้อนกว่า dipole'],
+  note:'นิยมใช้ balun 2:1 หรือ 4:1 ตามตำแหน่งจุดป้อนจริงที่วัดได้ เพื่อให้ match กับสาย 50Ω ดีขึ้น',
+  uses:['HF DX Listening','พื้นที่ noise สูง','งานทดลอง loop'],
+  calc(f){const side=lam(f)/3*100;return{main:side,side,lbl:'ความยาวต่อด้าน (สามเหลี่ยมเท่า)'};},
+  steps(f,r){return[
+    {n:1,t:'ตัดลวด 3 ด้าน ด้านละ <span class="hi">'+fmt(r.side)+'</span>'},
+    {n:2,t:'จัดเป็นสามเหลี่ยมด้านเท่าและยึดมุมให้ตึง'},
+    {n:3,t:'ป้อนสัญญาณที่มุมล่างหรือกึ่งกลางด้านล่าง'},
+    {n:4,t:'ใช้งานร่วม balun/choke เพื่อปรับ match และลด noise'}
+  ];},
+  bdg:['bm ✦ ปานกลาง','bi noise ต่ำ','bd loop 1λ','bd HF ดีมาก']
+},
 discone:{
   name:'Discone Antenna',icon:'&#x1F302;',imp:50,gain:'2-3 dBi (wideband flat)',gainNum:2.5,
   polar:'Omni 360° ทุกย่าน',bands:'25 MHz &#8211; 1300+ MHz (broadband ทุกย่าน)',diff:3,
@@ -610,6 +709,21 @@ discone:{
   bdg:['bh ✦ ยากกว่า','bi ~50Ω','bd FM-UHF ครอบคลุม','bi Wideband']
 }
 };
+
+function renderDifficultyOnButtons(){
+  const map={1:'★',2:'★★',3:'★★★',4:'★★★'};
+  document.querySelectorAll('.tbtn').forEach(btn=>{
+    const t=btn.dataset.type;
+    const a=ANT[t];
+    if(!a) return;
+    const old=btn.querySelector('.tdiff');
+    if(old) old.remove();
+    const el=document.createElement('div');
+    el.className='tdiff';
+    el.textContent='ความยาก: '+(map[a.diff]||'★');
+    btn.appendChild(el);
+  });
+}
 
 function detectBand(f){
   if(f<0.1)return null;
@@ -697,6 +811,9 @@ function calc(){
     return'<span class="bdg '+c+'">'+rest.join(' ')+'</span>';
   }).join('');
 
+  renderFeedInfo(atype);
+  renderReadyInfo();
+
   const da=document.getElementById('da');
   da.classList.remove('flash');void da.offsetWidth;da.classList.add('flash');
 }
@@ -724,6 +841,68 @@ function renderInfo(ant){
     '</div></div>'+
     '<div class="ai-sec"><div class="ai-sh">หมายเหตุ / เคล็ดลับ</div><div class="ai-p">'+ant.note+'</div></div>'+
     (useTags?'<div class="ai-sec"><div class="ai-sh">เหมาะสำหรับ</div><div class="use-tags">'+useTags+'</div></div>':'')+
+    '</div>';
+}
+
+
+const FEED={
+  dipole:{title:'Dipole / Inverted-V / V-Dipole',desc:'ต่อที่กึ่งกลาง โดยต้องมีฉนวนแยกแขนซ้าย-ขวา',points:['Center pin → แขนหนึ่ง','Shield → อีกแขนหนึ่ง','ห้ามแขนสองข้างสัมผัสกันที่จุดป้อน'],svg:'<svg viewBox="0 0 300 150"><line x1="20" y1="75" x2="135" y2="75" stroke="var(--acc3)" stroke-width="5"/><line x1="165" y1="75" x2="280" y2="75" stroke="var(--acc3)" stroke-width="5"/><circle cx="150" cy="75" r="6" fill="none" stroke="#ffd166" stroke-width="2"/><line x1="150" y1="130" x2="135" y2="75" stroke="var(--acc2)" stroke-width="3"/><line x1="150" y1="130" x2="165" y2="75" stroke="var(--acc)" stroke-width="3"/></svg>'},
+  monopole:{title:'Monopole / Ground Plane / 5/8',desc:'แกนในขึ้นเสาหลัก ชีลด์ลงชุดกราวด์',points:['Center pin → เสาหลักแนวตั้ง','Shield → radial/ฐานกราวด์','เสาหลักต้องแยกฉนวนจากกราวด์เพลน'],svg:'<svg viewBox="0 0 300 150"><line x1="150" y1="20" x2="150" y2="80" stroke="var(--acc3)" stroke-width="5"/><line x1="80" y1="92" x2="220" y2="92" stroke="#8aa" stroke-width="4"/><line x1="150" y1="130" x2="150" y2="80" stroke="var(--acc2)" stroke-width="3"/><line x1="150" y1="130" x2="110" y2="92" stroke="var(--acc)" stroke-width="3"/></svg>'},
+  jpole:{title:'J-Pole',desc:'จุดป้อนอยู่บน matching stub ใกล้ฐาน และฐานต้อง short ถึงกัน',points:['Center pin → ท่อนยาว','Shield → ท่อนสั้น','เลื่อนตำแหน่ง feed ขึ้น/ลงเพื่อจูน SWR'],svg:'<svg viewBox="0 0 300 150"><line x1="95" y1="20" x2="95" y2="130" stroke="var(--acc3)" stroke-width="5"/><line x1="190" y1="55" x2="190" y2="130" stroke="#9aa" stroke-width="5"/><line x1="95" y1="130" x2="190" y2="130" stroke="#ffd166" stroke-width="5"/><text x="145" y="145" fill="#ffd166" font-size="10" text-anchor="middle">shorting bar</text><line x1="150" y1="145" x2="110" y2="95" stroke="var(--acc2)" stroke-width="3"/><line x1="150" y1="145" x2="175" y2="95" stroke="var(--acc)" stroke-width="3"/></svg>'},
+  slimjim:{title:'Slim Jim',desc:'โครงหลักมี short ด้านบนและ short ที่ฐาน matching section',points:['Center pin → แขนยาวฝั่งรังสี','Shield → แขนสั้นฝั่ง matching','จุด feed อยู่ใต้ช่อง gap และไม่ช็อตข้าม gap'],svg:'<svg viewBox="0 0 300 150"><line x1="90" y1="20" x2="90" y2="130" stroke="var(--acc3)" stroke-width="5"/><line x1="170" y1="20" x2="170" y2="130" stroke="var(--acc3)" stroke-width="5"/><line x1="90" y1="20" x2="170" y2="20" stroke="#ffd166" stroke-width="4"/><line x1="90" y1="130" x2="130" y2="130" stroke="#ffd166" stroke-width="4"/><line x1="170" y1="130" x2="210" y2="130" stroke="#ffd166" stroke-width="4"/><line x1="150" y1="145" x2="118" y2="102" stroke="var(--acc2)" stroke-width="3"/><line x1="150" y1="145" x2="150" y2="104" stroke="var(--acc)" stroke-width="3"/></svg>'},
+  yagi:{title:'Yagi',desc:'ป้อนเฉพาะ driven element ที่ผ่าครึ่งและแยกฉนวน',points:['Center pin → driven ครึ่งบน','Shield → driven ครึ่งล่าง','Driven ต้องไม่สัมผัส boom โลหะ'],svg:'<svg viewBox="0 0 300 150"><line x1="40" y1="90" x2="260" y2="90" stroke="#456" stroke-width="3"/><line x1="90" y1="50" x2="90" y2="130" stroke="#9aa" stroke-width="4"/><line x1="150" y1="55" x2="150" y2="84" stroke="var(--acc3)" stroke-width="5"/><line x1="150" y1="96" x2="150" y2="125" stroke="var(--acc3)" stroke-width="5"/><line x1="215" y1="60" x2="215" y2="120" stroke="#c7f" stroke-width="4"/></svg>'},
+  moxon:{title:'Moxon Rectangle',desc:'ป้อนที่กึ่งกลางด้านหน้าของ driven element ไม่ใช่แบบ Yagi',points:['Center pin → driven ด้านหนึ่ง','Shield → driven อีกด้าน','ที่จุด feed ต้องมีช่องฉนวนคั่น'],svg:'<svg viewBox="0 0 300 150"><polyline points="70,45 220,45 220,80" fill="none" stroke="#00d4ff" stroke-width="4"/><polyline points="70,45 70,80" fill="none" stroke="#00d4ff" stroke-width="4"/><polyline points="70,110 70,135 220,135 220,110" fill="none" stroke="#39ff7e" stroke-width="4"/><line x1="145" y1="45" x2="145" y2="57" stroke="#ffd166" stroke-width="3"/><line x1="155" y1="45" x2="155" y2="57" stroke="#ffd166" stroke-width="3"/><line x1="150" y1="145" x2="145" y2="57" stroke="var(--acc2)" stroke-width="3"/><line x1="150" y1="145" x2="155" y2="57" stroke="var(--acc)" stroke-width="3"/></svg>'},
+  efhw:{title:'EFHW (49:1 Unun)',desc:'ต่อสายที่หม้อแปลง ไม่ต่อ coax เข้าลวดตรง',points:['ลวดเสา → ขั้ว ANT ของ 49:1 Unun','Coax Center/Shield → ขั้ว SO-239/BNC ของ Unun','เพิ่ม choke 1:1 หลัง Unun เพื่อกันกระแสไหลบนผิวสาย'],svg:'<svg viewBox="0 0 300 150"><line x1="40" y1="55" x2="150" y2="55" stroke="#ffd166" stroke-width="4"/><rect x="150" y="38" width="70" height="34" fill="#1b2a3d" stroke="#00d4ff"/><text x="185" y="59" fill="#00d4ff" font-size="10" text-anchor="middle">49:1 UNUN</text><line x1="220" y1="55" x2="245" y2="90" stroke="#00d4ff" stroke-width="3"/><line x1="245" y1="90" x2="260" y2="120" stroke="#ff6b35" stroke-width="3"/></svg>'},
+  deltaloop:{title:'Delta Loop',desc:'ป้อนที่มุม/ด้านล่าง และใช้ balun/choke ตามอิมพีแดนซ์จริง',points:['Center pin → จุดป้อนด้านหนึ่งของลูป','Shield → จุดป้อนอีกด้าน','แนะนำ balun/choke เพื่อลด common-mode'],svg:'<svg viewBox="0 0 300 150"><polygon points="150,15 70,125 230,125" fill="none" stroke="var(--acc4)" stroke-width="4"/><circle cx="150" cy="125" r="5" fill="#00d4ff"/><line x1="150" y1="125" x2="150" y2="145" stroke="var(--acc2)" stroke-width="3"/></svg>'},
+  longwire:{title:'Long Wire / Random Wire',desc:'ใช้สายยาว + matching transformer หรือ tuner',points:['Center pin → ปลายลวด','Shield → กราวด์/คอนเตอร์พอยส์','ถ้าต่อผ่าน 9:1 Unun ให้เข้าที่ขั้ว ANT ของ Unun'],svg:'<svg viewBox="0 0 300 150"><line x1="35" y1="45" x2="250" y2="45" stroke="#ffd166" stroke-width="4"/><rect x="35" y="60" width="60" height="25" fill="#1b2a3d" stroke="#00d4ff"/><text x="65" y="76" fill="#00d4ff" font-size="9" text-anchor="middle">9:1 UNUN</text><line x1="65" y1="85" x2="65" y2="135" stroke="#ff6b35" stroke-width="3"/></svg>'},
+  satcp:{title:'Turnstile / QFH / Helical',desc:'ต้องคุมเฟสและ polarization ให้ถูกต้อง',points:['Turnstile ใช้สายหน่วง 1/4λ ในสายจริง','QFH/Helical วัดขนาดโครงให้ตรงสูตร','ตรวจทิศติดตั้งให้ตรงทิศทางดาวเทียม'],svg:'<svg viewBox="0 0 300 150"><path d="M90 125 C90 80 210 80 210 35" fill="none" stroke="var(--acc5)" stroke-width="4"/><path d="M110 125 C110 85 230 85 230 40" fill="none" stroke="var(--acc)" stroke-width="3"/><line x1="150" y1="125" x2="150" y2="145" stroke="var(--acc2)" stroke-width="3"/></svg>'}
+};
+
+const READY=[
+  {id:'discone',name:'Discone สำเร็จรูป',rx:'25–1300 MHz',price:'฿800–฿2,500',install:'ติดตั้งแนวตั้งที่สูง โล่ง',pros:'ครอบคลุมหลายย่าน ไม่ต้องจูน',cons:'ขนาดใหญ่ และ gain รายย่านไม่สูง',tip:'เหมาะคนที่สแกนหลายความถี่',svg:'<svg viewBox="0 0 220 160"><ellipse cx="110" cy="50" rx="62" ry="14" fill="none" stroke="#39ff7e" stroke-width="3"/><line x1="110" y1="64" x2="45" y2="135" stroke="#8aa" stroke-width="2"/><line x1="110" y1="64" x2="175" y2="135" stroke="#8aa" stroke-width="2"/><line x1="110" y1="64" x2="110" y2="135" stroke="#8aa" stroke-width="2"/></svg>'},
+  {id:'x30',name:'Diamond X30',rx:'144/430 MHz',price:'฿1,700–฿2,900',install:'เสาไฟเบอร์/เสาเหล็กกลางแจ้ง',pros:'ทนสภาพอากาศดี ใช้ยาวๆ',cons:'รับได้แคบกว่าพวก wideband',tip:'เหมาะ VHF/UHF สื่อสารทั่วไป',svg:'<svg viewBox="0 0 120 170"><line x1="60" y1="10" x2="60" y2="155" stroke="#39ff7e" stroke-width="5"/><line x1="35" y1="70" x2="85" y2="70" stroke="#39ff7e" stroke-width="3"/><rect x="54" y="155" width="12" height="12" fill="#888"/></svg>'},
+  {id:'x50',name:'Diamond X50',rx:'144/430 MHz',price:'฿2,600–฿4,200',install:'ติดสูงกว่า X30 เพื่อระยะไกล',pros:'gain สูงกว่า X30',cons:'ยาวและรับลมมากขึ้น',tip:'เหมาะสถานีฐานบ้าน',svg:'<svg viewBox="0 0 120 170"><line x1="60" y1="5" x2="60" y2="158" stroke="#39ff7e" stroke-width="5"/><line x1="33" y1="55" x2="87" y2="55" stroke="#39ff7e" stroke-width="3"/><line x1="30" y1="95" x2="90" y2="95" stroke="#39ff7e" stroke-width="3"/><rect x="54" y="158" width="12" height="10" fill="#888"/></svg>'},
+  {id:'nagoya',name:'Nagoya NA-771',rx:'144/430 MHz',price:'฿220–฿650',install:'ต่อกับ HT โดยตรง',pros:'ราคาดี ใช้งานง่าย',cons:'คุณภาพต่างกันตามร้าน',tip:'เหมาะพกพาและใช้งานมือถือ',svg:'<svg viewBox="0 0 120 170"><line x1="60" y1="20" x2="60" y2="145" stroke="#00d4ff" stroke-width="5"/><rect x="52" y="145" width="16" height="20" fill="#666"/></svg>'},
+  {id:'mla30',name:'MLA-30 Active Loop',rx:'0.5–30 MHz',price:'฿1,000–฿2,200',install:'ห่าง noise และสายไฟบ้าน',pros:'เหมาะ HF ในเมือง',cons:'ต้องมีไฟเลี้ยง bias-tee',tip:'เหมาะรับคลื่นสั้น/สถานีไกล',svg:'<svg viewBox="0 0 220 160"><ellipse cx="110" cy="80" rx="60" ry="60" fill="none" stroke="#ff6b35" stroke-width="4"/><rect x="98" y="130" width="24" height="16" fill="#1b2a3d" stroke="#ff6b35"/></svg>'},
+  {id:'dipolekit',name:'RTL-SDR Dipole Kit',rx:'~25–1700 MHz (ปรับความยาว)',price:'฿1,200–฿1,900',install:'ตั้งโต๊ะ/ขาตั้งชั่วคราว',pros:'เริ่มต้นง่าย ปรับได้',cons:'ไม่ได้ gain สูงเฉพาะทาง',tip:'เหมาะเริ่มทดลองหลายย่าน',svg:'<svg viewBox="0 0 220 160"><line x1="20" y1="70" x2="95" y2="70" stroke="#39ff7e" stroke-width="4"/><line x1="125" y1="70" x2="200" y2="70" stroke="#39ff7e" stroke-width="4"/><rect x="95" y="61" width="30" height="18" fill="#1b2a3d" stroke="#ff6b35"/></svg>'},
+  {id:'patch',name:'Active Patch GPS/L-Band',rx:'1.5–1.7 GHz',price:'฿350–฿1,500',install:'วางหงายขึ้นท้องฟ้า',pros:'ติดตั้งง่าย เล็ก',cons:'รับทิศเดียว ต้องหันทิศถูก',tip:'เหมาะ GPS/L-band sat',svg:'<svg viewBox="0 0 220 160"><rect x="70" y="35" width="80" height="80" fill="rgba(0,212,255,.12)" stroke="#00d4ff" stroke-width="3"/><circle cx="110" cy="75" r="6" fill="#00d4ff"/></svg>'}
+];
+let selectedReady='discone';
+
+function feedKeyOf(type){
+  if(['dipole','invertedv','vdipole'].includes(type)) return 'dipole';
+  if(['monopole','groundplane','fiveEighths','discone','collinear'].includes(type)) return 'monopole';
+  if(type==='jpole') return 'jpole';
+  if(type==='slimjim') return 'slimjim';
+  if(['yagi3','yagi5'].includes(type)) return 'yagi';
+  if(type==='moxon') return 'moxon';
+  if(type==='efhw') return 'efhw';
+  if(type==='deltaloop') return 'deltaloop';
+  if(type==='longwire') return 'longwire';
+  return 'satcp';
+}
+
+function renderFeedInfo(type){
+  const f=FEED[feedKeyOf(type)];
+  if(!f) return;
+  document.getElementById('feedInfo').innerHTML='<div class="feed-grid"><div class="feed-box"><h4>'+f.title+'</h4><p>'+f.desc+'</p><ul>'+f.points.map(x=>'<li>'+x+'</li>').join('')+'</ul><div style="margin-top:8px;font-size:10px;color:var(--acc4)">สิ่งสำคัญ: ตรวจฉนวน/จุด short ให้ถูกตำแหน่งก่อนต่อวิทยุทุกครั้ง</div></div><div class="feed-box"><h4>แผนภาพการต่อสาย</h4><div class="feed-diag">'+f.svg+'</div></div></div>';
+}
+
+function renderReadyInfo(sel){
+  if(sel) selectedReady=sel;
+  const cur=READY.find(x=>x.id===selectedReady)||READY[0];
+  const btns=READY.map(r=>'<button class="vbtn '+(r.id===cur.id?'on':'')+'" onclick="renderReadyInfo(\''+r.id+'\')">'+r.name+'</button>').join('');
+  document.getElementById('readyInfo').innerHTML=
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">'+btns+'</div>'+
+    '<div class="ready-row">'+
+      '<div class="ready-name">'+cur.name+'</div>'+
+      '<div class="feed-diag" style="margin-bottom:10px">'+cur.svg+'</div>'+
+      '<div class="ready-desc"><strong>ความถี่ที่รับได้:</strong> '+cur.rx+'</div>'+
+      '<div class="ready-desc"><strong>ราคาโดยประมาณ:</strong> '+cur.price+'</div>'+
+      '<div class="ready-desc"><strong>การติดตั้ง:</strong> '+cur.install+'</div>'+
+      '<div class="ready-desc"><strong>ข้อดี:</strong> '+cur.pros+'</div>'+
+      '<div class="ready-desc"><strong>ข้อเสีย:</strong> '+cur.cons+'</div>'+
+      '<div class="ready-desc"><strong>คำแนะนำ:</strong> '+cur.tip+'</div>'+
     '</div>';
 }
 
@@ -800,18 +979,19 @@ function drawDiagram(ant,r){
     ctx.save();ctx.strokeStyle='rgba(255,209,102,.7)';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x0-16,gy);ctx.lineTo(x0+16,gy);ctx.stroke();ctx.beginPath();ctx.moveTo(x0-16,mid);ctx.lineTo(x0+16,mid);ctx.stroke();ctx.restore();
     lb(x0-28,gy+8,'gap');SMA(x0-6,gy+6,Math.PI);
     nd(x1,top,'#00d4ff');nd(x0,mid,'#39ff7e');nd(x0,bot,'rgba(90,140,190,.8)',4);nd(x1,bot,'rgba(90,140,190,.8)',4);
-    wv(x1,top-12,'v');dim(x1+30,bot,x1+30,top,fmt(r.long),8,0);dim(x0-30,bot,x0-30,mid,fmt(r.short),-8,0);
+    wv(x1,top-12,'v');dim(x1+30,bot,x1+30,top,fmt(r.long),8,0);dim(x0-30,bot,x0-30,mid,fmt(r.short),-8,0);dim(x0,bot+14,x1,bot+14,fmt(r.gap),0,14);
     glb(x1+5,(bot+top)/2,'3/4 radiator','left','#00d4ff',9);glb(x0-5,(bot+mid)/2,'1/4 stub','right','#39ff7e',9);
+    glb(cx,bot+30,'bottom shorting bar','center','#ffd166',8);
     lb(cx,H-16,'J-Pole: ตั้งตรง | ไม่ต้อง Ground Plane | Gain +3 dBd');
 
   }else if(atype==='slimjim'){
     const x0=cx-28,x1=cx+28,top=cy-AP,fold=cy+AP*0.8;
-    gl(x0,fold,x0,top,'#00d4ff',4,16);gl(x0,top,x1,top,'#00d4ff',3,10);gl(x1,top,x1,fold,'#39ff7e',4,14);
-    ctx.save();ctx.strokeStyle='rgba(255,209,102,.8)';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(x1-14,fold);ctx.lineTo(x1+14,fold);ctx.stroke();ctx.restore();
+    gl(x0,fold,x0,top,'#00d4ff',4,16);gl(x0,top,x1,top,'#ffd166',3,10);gl(x1,top,x1,fold,'#39ff7e',4,14);
+    ctx.save();ctx.strokeStyle='#ffd166';ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(x1-14,fold);ctx.lineTo(x1+14,fold);ctx.stroke();ctx.restore();
     SMA(x1+10,fold+8,0);nd(x0,top,'#00d4ff',4);nd(x1,top,'#00d4ff',4);nd(x0,fold,'rgba(90,140,190,.8)',4);
     wv(cx,top-12,'v');dim(x0-30,top,x0-30,fold,fmt(r.total),-8,0);
-    glb(cx,top-20,'Short circuit','center','rgba(255,100,100,.8)',9);
-    lb(x1+36,fold+6,'feed+gap','left');lb(cx,H-16,'Slim Jim: Low-angle radiation | ทำจาก 300 ohm ribbon cable');
+    glb(cx,top-20,'top short','center','#ffd166',9);glb(cx,fold+18,'bottom short (stub)','center','#ffd166',8);
+    lb(x1+22,fold+8,'feed gap','left');lb(cx,H-16,'Slim Jim: low-angle | 300/450Ω twin-lead');
 
   }else if(atype==='collinear'){
     const s1t=cy-AP,s1b=cy,s2b=cy+AP,px=cx+28;
@@ -837,7 +1017,12 @@ function drawDiagram(ant,r){
 
   }else if(atype==='yagi3'||atype==='yagi5'){
     const dirs=atype==='yagi5'?[r.d1,r.d2]:[r.dir];
-    const sc=AP/(r.driv/2)*0.9,rL=(r.refl/2)*sc,dL=(r.driv/2)*sc;
+    const rawSc=AP/(r.driv/2)*0.9;
+    const refX0=cx-(r.srd/r.driv*2)*(r.driv/2)*rawSc*1.3-(r.driv/2)*rawSc*0.8;
+    const dirX0=dirs.map((_,i)=>cx+(r.sdd/r.driv*2)*(r.driv/2)*rawSc*(i+1)*1.3+(r.driv/2)*rawSc*(i+1)*0.5);
+    const leftSpace=Math.max(16,refX0-16),rightSpace=Math.max(16,W-(dirX0[dirX0.length-1]+16));
+    const fit=Math.min(1,(W-leftSpace-rightSpace)/(dirX0[dirX0.length-1]-refX0+20));
+    const sc=rawSc*fit,rL=(r.refl/2)*sc,dL=(r.driv/2)*sc;
     const by=cy;
     const refX=cx-(r.srd/r.driv*2)*dL*1.3-dL*0.8,driX=cx;
     const dirXs=dirs.map((_,i)=>cx+(r.sdd/r.driv*2)*dL*(i+1)*1.3+dL*(i+1)*0.5);
@@ -870,6 +1055,7 @@ function drawDiagram(ant,r){
     for(let i=1;i<=4;i++){const ri=18+i*18,a2=0.1-i*0.02;ctx.save();ctx.strokeStyle='rgba(57,255,126,'+a2+')';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy-bPx-8,ri,-Math.PI*.4,Math.PI*.4,false);ctx.stroke();ctx.restore();}
     dim(cx-aPx,cy-bPx-18,cx+aPx,cy-bPx-18,fmt(A*2),0,-14);
     glb(cx,cy-bPx-32,'Front (feed)','center','#00d4ff',9);glb(cx,cy+cPx+16,'Rear (reflector)','center','#39ff7e',9);
+    glb(cx,cy-bPx-46,'A','center','#ffd166',10);glb(cx+aPx+44,cy,'B','left','#ffd166',10);glb(cx+12,cy+8,'C','left','#ffd166',10);
     lb(cx,H-16,'Moxon: Front (feed) ชี้ไปหาสัญญาณ | F/B > 30 dB');
 
   }else if(atype==='turnstile'){
@@ -917,6 +1103,49 @@ function drawDiagram(ant,r){
     ctx.save();ctx.fillStyle='rgba(255,107,53,0.9)';ctx.font='bold 10px Space Mono,monospace';ctx.textAlign='center';ctx.fillText('!! เปิด Direct Sampling Q Branch ใน SDR++ !!',cx,H-28);ctx.restore();
     lb(cx,H-14,'HF 1-30 MHz | ยิ่งยาวยิ่งดี | ขึงแนวนอนให้สูง');
 
+  }else if(atype==='vdipole'){
+    SMA(cx,cy+34,Math.PI/2);
+    const a=Math.min(115,W*0.36);
+    gl(cx,cy+34,cx-a*Math.cos(Math.PI/6),cy+34-a*Math.sin(Math.PI/6),'#00d4ff',4,14);
+    gl(cx,cy+34,cx+a*Math.cos(Math.PI/6),cy+34-a*Math.sin(Math.PI/6),'#39ff7e',4,14);
+    nd(cx,cy+34,'#fff',4);
+    dim(cx-35,cy+18,cx-a*0.86,cy+34-a*0.5,fmt(r.arm),-4,-8);
+    dim(cx+35,cy+18,cx+a*0.86,cy+34-a*0.5,fmt(r.arm),4,-8);
+    glb(cx,cy+120,'V-Dipole 120° สำหรับ NOAA/Meteor','center','#00d4ff',10);
+
+  }else if(atype==='helical'){
+    const x=cx-30,y=78;
+    for(let i=0;i<8;i++){
+      ctx.beginPath();
+      ctx.strokeStyle=i%2?'#00d4ff':'#c77dff';
+      ctx.lineWidth=3;
+      ctx.ellipse(x+i*10,y+i*14,24,9,Math.PI/3,0,Math.PI*2);
+      ctx.stroke();
+    }
+    gl(cx-30,62,cx-30,250,'#8aa',2,0);
+    SMA(cx-30,252,0);
+    glb(cx+85,96,'Helical RHCP','center','#c77dff',12);
+    glb(cx+90,114,'Spacing '+fmt(r.sp),'center','#00d4ff',9);
+
+  }else if(atype==='efhw'){
+    gl(40,85,W-40,85,'#ffd166',3,10);
+    ctx.strokeStyle='#00d4ff';
+    ctx.strokeRect(55,95,44,28);
+    gl(55,85,55,109,'#ffd166',2,0);gl(99,85,99,109,'#ffd166',2,0);
+    glb(77,112,'49:1','center','#00d4ff',10);
+    gl(77,123,77,145,'#00d4ff',2,0);
+    gl(77,145,93,160,'#ff6b35',2,0);
+    SMA(74,150,Math.PI/2);
+    glb(cx,60,'EFHW — feed ที่ปลายลวด','center','#ffd166',11);
+
+  }else if(atype==='deltaloop'){
+    gl(cx,45,75,240,'#ffd166',3,8);
+    gl(75,240,W-75,240,'#ffd166',3,8);
+    gl(W-75,240,cx,45,'#ffd166',3,8);
+    SMA(cx,245,Math.PI/2);
+    gl(cx,245,cx,220,'#00d4ff',2,0);
+    glb(cx,30,'Delta Loop 1λ','center','#ffd166',11);
+
   }else if(atype==='discone'){
     const coneH=AP,discR=AP*0.52,nCone=8;
     gl(cx-discR,cy,cx+discR,cy,'#00d4ff',3,12);
@@ -958,6 +1187,7 @@ function resetToAuto(){
 }
 
 // ── Events ──
+renderDifficultyOnButtons();
 document.getElementById('fi').addEventListener('input',()=>{
   userOverride=false; // new frequency input → reset to auto
   calc();
